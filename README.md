@@ -1,3 +1,317 @@
+# KuaiRand Four-Layer Short Video Recommendation System
+
+A four-layer recommendation system project for short-video Feed scenarios, implemented on the **KuaiRand-Pure** dataset. The goal is not a single-model baseline, but to reproduce a more industry-like full pipeline with practical personal engineering complexity: **preprocess -> multi-recall -> pre-rank -> rank -> rerank**.
+
+## Project Background
+
+Compared with traditional MovieLens-style recommendation, short-video recommendation has two key differences:
+
+- The candidate space is much larger, so multi-channel recall and layered filtering are required instead of directly ranking over all items.
+- User feedback is richer. In addition to clicks, there are multiple targets such as **watch time, finish, and like**, so multi-task learning is more suitable in the ranking stage.
+
+So this project is not a toy two-stage "recall + ranking" demo. It implements a four-layer architecture closer to real Feed recommendation systems:
+
+- Preprocess layer: label construction, time-based split, user sequences, shared feature tables
+- Multi-recall layer: popular / itemcf / twotower / graph_emb
+- Pre-rank layer: LightGBM filters low-quality candidates
+- Rank layer: DIN-style multi-task ranking
+- Rerank layer: rule-based rerank, adding author frequency control, content diversity, and freshness strategies
+
+This project emphasizes **industrial layered recommendation thinking**, rather than "forcing a single deep model onto a public dataset".
+
+## Dataset
+
+This project uses [KuaiRand-Pure](https://zenodo.org/records/10439422).
+
+Why this dataset:
+
+- It comes from a short-video scenario, naturally suitable for Feed recommendation modeling.
+- Logs include fields like `play_time_ms`, `duration_ms`, `is_like`, and `long_view`, which support common multi-target label design for short-video tasks.
+- Item-side fields include `author_id`, `tag`, upload time, and statistical features, making it easy to model author-level, category-level, and freshness signals.
+
+This project uses a **time-based split** to avoid leakage caused by random splitting:
+
+- `train`: `date <= 20220424`
+- `val`: `20220425 ~ 20220430`
+- `test`: `date >= 20220501`
+
+Label definitions:
+
+- `like = is_like`
+- `finish = play_time_ms / duration_ms >= 0.95`
+- `long_watch = long_view`
+- `is_positive = long_watch OR finish OR like`
+
+Here, `is_positive` represents an "effective positive feedback" definition under implicit-feedback short-video settings. It is not equivalent to an explicit "like", but is suitable as supervision for recall and pre-rank.
+
+## Overall Architecture
+
+```text
+raw KuaiRand-Pure csv
+  -> preprocess
+  -> multi-recall
+  -> prerank
+  -> DIN-style multi-task rank
+  -> rule-based rerank
+  -> final feed list
+```
+
+### 1. Preprocess
+
+The preprocess stage uniformly handles:
+
+- Raw log reading and field standardization
+- Label construction for `watch_ratio / finish / long_watch / like / is_positive`
+- Time-based split into train / val / test
+- Persisted user basic features, item basic features, and item statistical features
+- User behavior sequence construction
+
+Core outputs:
+
+- `processed/interactions.parquet`
+- `processed/user_features.parquet`
+- `processed/item_features.parquet`
+- `processed/user_sequences.parquet`
+- `processed/splits/{train,val,test}.parquet`
+
+### 2. Multi-Recall
+
+The recall layer finally implements 4 channels:
+
+- `popular`
+  - Based on train-split statistics of plays, long watch, finish, and like
+- `itemcf`
+  - Builds item-item co-occurrence similarity from positive-feedback sequences in train split
+- `twotower`
+  - User tower uses `user_id + recent watch sequence`
+  - Item tower uses `video_id + author_id + tag`
+  - Trained with PyTorch, GPU supported
+- `graph_emb`
+  - Builds an item-item graph from train-split positive feedback
+  - Learns item embeddings using random walk + skip-gram
+  - Integrated into merge as an additional recall channel
+
+Recall results are merged through a unified merge module:
+
+- Per-source control via source quotas
+- Computes `merged_score`
+- Keeps each channel's `source_score / source_rank`
+- Final outputs: `train/val/test_candidates.parquet`
+
+### 3. Pre-Rank
+
+The pre-rank layer is trained on recall candidates, not on full user-item pairs.
+
+The first main model is **LightGBM**:
+
+- Training samples come from `artifacts/recall/*_candidates.parquet`
+- Positive samples: candidates with `label = 1`
+- Negative samples: candidates with `label = 0`, with user-level negative sampling
+- Features are lightweight engineered features:
+  - `user_id / video_id / author_id / tag`
+  - user/item basic and statistical features
+  - recall source, merged score, source count
+  - per-source score / rank
+  - freshness_days
+
+The pre-rank objective is to compress each user's candidates from 500 to 100 while retaining positives as much as possible.
+
+### 4. Rank
+
+The main rank model is not a plain MLP, but a **DIN-style multi-task ranking model**.
+
+Design:
+
+- Build leakage-safe user historical sequences using the `train split`
+- Apply target-aware attention between candidate items and user historical items
+- Concatenate the resulting user-interest vector with static features into a shared tower
+- Output 3 tasks:
+  - `long_watch`
+  - `finish`
+  - `like`
+
+Final `rank_score` is a weighted fusion of three task scores:
+
+- `0.45 * p(long_watch)`
+- `0.25 * p(finish)`
+- `0.30 * p(like)`
+
+Why DIN:
+
+- Compared with plain MLP, it better models matching between "current candidate video" and "what the user recently watched"
+- Compared with Transformer, engineering complexity is more controllable, which is more suitable for a first personal project version
+
+### 5. Rerank
+
+The rerank layer uses rule-based greedy reranking without training an additional slate model.
+
+Current strategies include:
+
+- Author frequency control
+  - Consecutive-author penalty
+  - Max author exposure constraint in topN
+- Tag diversity
+  - Consecutive same-tag penalty
+  - Repeated-tag penalty
+  - New-tag bonus
+- Freshness adjustment
+  - Exponential decay bonus based on `freshness_days`
+
+Design principles:
+
+- Do not overturn DIN relevance ranking
+- Add lightweight business constraints only in the final layer
+- Balance ranking quality, diversity, and feed display experience
+
+## Result Summary
+
+The following results are based on current official local run artifacts.
+
+### Recall Layer
+
+Final setup uses `popular + itemcf + twotower + graph_emb`, where `graph_emb` is integrated as a supplementary recall channel after weight and quota tuning.
+
+| split | Recall@50 | Recall@100 | Recall@200 | Coverage |
+|---|---:|---:|---:|---:|
+| val | 0.1832 | 0.2476 | 0.3151 | 0.9995 |
+| test | 0.1731 | 0.2343 | 0.2973 | 0.9996 |
+
+### Pre-Rank Layer
+
+LightGBM pre-rank results:
+
+- `val_auc = 0.8149`
+- `train_auc = 0.8648`
+- Candidate compression: `500 -> 100`, retaining `20%` of candidates overall
+- `val recall_retained@100 = 0.6600`
+- `test recall_retained@100 = 0.6315`
+
+If we compare absolute top100 recall with the same definition as the recall layer:
+
+- `val`: improved from `0.2476` to `0.3523`
+- `test`: improved from `0.2343` to `0.3317`
+
+This shows pre-rank effectively brings more likely-hit items forward while shrinking the candidate set.
+
+### Rank Layer
+
+Key metrics of DIN-style multi-task ranking:
+
+| split | rank_auc | long_watch_auc | finish_auc | like_auc | NDCG@20 |
+|---|---:|---:|---:|---:|---:|
+| val | 0.5753 | 0.5746 | 0.6596 | 0.6201 | 0.0295 |
+| test | 0.5845 | 0.5838 | 0.6663 | 0.6219 | 0.0359 |
+
+### Rerank Layer
+
+Under minimal quality loss, rule-based rerank improves diversity and feed ecology:
+
+- `val`
+  - `NDCG@20: +0.0000117`
+  - `Recall@20: +0.000479`
+  - `avg_unique_tags_per_user: +0.309`
+  - `adjacent_same_tag_rate: -0.0172`
+- `test`
+  - `NDCG@20: +0.000182`
+  - `Recall@20: +0.001631`
+  - `avg_unique_tags_per_user: +0.302`
+  - `adjacent_same_tag_rate: -0.0171`
+
+These results match the role of rerank: not to chase large metric jumps, but to trade small cost for better content distribution and display experience.
+
+## How To Run
+
+Recommended: use the preconfigured A100 environment:
+
+```bash
+cd /scratch/ym3447/Rec
+source /scratch/ym3447/Rec/.venv-a100/bin/activate
+```
+
+Run by stages:
+
+```bash
+python scripts/01_preprocess.py
+python scripts/02_train_recall.py
+python scripts/03_generate_recall_candidates.py
+python scripts/04_train_prerank.py
+python scripts/05_generate_prerank_topk.py
+python scripts/06_train_rank.py
+python scripts/07_run_rerank.py
+python scripts/08_evaluate_pipeline.py
+```
+
+Notes:
+
+- PyTorch training defaults to `.venv-a100` with `device: auto -> cuda`
+- LightGBM pre-rank is CPU training
+- Rerank is rule-based CPU logic
+
+## Project Structure
+
+```text
+Rec/
+  configs/
+  processed/
+  artifacts/
+  scripts/
+  src/
+    data/
+    recall/
+    prerank/
+    rank/
+    rerank/
+    utils/
+  docs/
+```
+
+## Project Highlights
+
+- Not a single-model demo, but a complete **four-layer recommendation pipeline**
+- Clearly reflects industrial layered recommendation thinking: **multi-recall -> pre-rank -> rank -> rerank**
+- Recall layer goes beyond popular/itemcf and also implements `twotower + graph_emb`
+- Pre-rank uses LightGBM to handle massive candidates, closer to real engineering practice
+- Rank uses a **DIN-style multi-task model**, not a simple MLP
+- Rerank adds Feed strategies including author frequency control, tag diversity, and freshness adjustment
+- Intermediate candidates, models, and metrics are persisted for reproducibility, extensibility, and interview presentation
+
+## What This Project Is Not
+
+This project is not a full reproduction of a large-scale online recommender system, and does not include:
+
+- Real-time feature serving
+- ANN service deployment
+- Distributed training and online inference
+- A/B testing and online metric closed loop
+
+But it still provides a relatively complete demonstration of:
+
+- Why industrial recommender systems use layered architecture
+- What problem each layer solves
+- Why short-video recommendation needs multi-objective learning and reranking constraints
+
+That is also why it is suitable for recommendation algorithm resumes and interview walkthroughs.
+
+## Future Extensions
+
+- Replace DIN with stronger sequence models, e.g. Transformer ranker
+- Add more robust ANN retrieval and vector indexing in recall
+- Add exposure-bias handling such as debias / IPS / DR
+- Extend rerank from rule-based to learning-to-rerank
+- Introduce context features like time segment, tab, and scenario context
+- Run offline ablation studies to compare contributions of graph_emb, twotower, multi-task loss, and rerank constraints
+
+## Documents
+
+- Result summary: [docs/results_summary.md](docs/results_summary.md)
+- Chinese resume version: [docs/resume_cn.md](docs/resume_cn.md)
+- English resume version: [docs/resume_en.md](docs/resume_en.md)
+- Interview notes: [docs/interview_notes.md](docs/interview_notes.md)
+- FAQ notes: [docs/qa_notes.md](docs/qa_notes.md)
+
+---
+
+## 中文版（原文）
 # KuaiRand 四层短视频推荐系统
 
 一个基于 **KuaiRand-Pure** 数据集实现的、面向短视频 Feed 场景的四层推荐系统项目。项目目标不是做单模型 baseline，而是用个人可落地的工程复杂度，复现更贴近工业推荐系统的 **预处理 -> 多路召回 -> 粗排 -> 精排 -> 重排** 全链路。
