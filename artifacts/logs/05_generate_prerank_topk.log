@@ -1,0 +1,34 @@
+2026-04-08 04:32:45 | INFO | kuairand_rec.generate_prerank_topk | Generating prerank topK for splits=['train', 'val', 'test'] topk=50
+2026-04-08 04:32:54 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 1 rows=50000
+2026-04-08 04:32:54 | INFO | kuairand_rec.generate_prerank_topk | Saved train prerank topK: /scratch/ym3447/Rec/artifacts/prerank_smoke/train_topk.parquet rows=5000
+2026-04-08 04:33:02 | INFO | kuairand_rec.generate_prerank_topk | Scored val chunk 1 rows=50000
+2026-04-08 04:33:02 | INFO | kuairand_rec.generate_prerank_topk | Saved val prerank topK: /scratch/ym3447/Rec/artifacts/prerank_smoke/val_topk.parquet rows=5000
+2026-04-08 04:33:11 | INFO | kuairand_rec.generate_prerank_topk | Scored test chunk 1 rows=50000
+2026-04-08 04:33:12 | INFO | kuairand_rec.generate_prerank_topk | Saved test prerank topK: /scratch/ym3447/Rec/artifacts/prerank_smoke/test_topk.parquet rows=5000
+2026-04-08 04:33:12 | INFO | kuairand_rec.generate_prerank_topk | Saved prerank inference metrics: /scratch/ym3447/Rec/artifacts/metrics/prerank_metrics_smoke.json
+2026-04-08 04:33:12 | INFO | kuairand_rec.generate_prerank_topk | Prerank topK metrics summary: {'train': {'input_candidates': 50000, 'output_candidates': 5000, 'num_users': 100, 'input_positive': 949, 'output_positive': 543, 'candidate_compression_ratio': 0.1, 'recall_retained': 0.5721812434141201, 'auc_on_scored_candidates': 0.7291555361628261, 'precision@50': 0.1086, 'recall_retained@50': 0.5721812434141201, 'precision@100': 0.1086, 'recall_retained@100': 0.5721812434141201}, 'val': {'input_candidates': 50000, 'output_candidates': 5000, 'num_users': 100, 'input_positive': 59, 'output_positive': 34, 'candidate_compression_ratio': 0.1, 'recall_retained': 0.576271186440678, 'auc_on_scored_candidates': 0.8069579019686812, 'precision@50': 0.0068, 'recall_retained@50': 0.576271186440678, 'precision@100': 0.0068, 'recall_retained@100': 0.576271186440678}, 'test': {'input_candidates': 50000, 'output_candidates': 5000, 'num_users': 100, 'input_positive': 90, 'output_positive': 42, 'candidate_compression_ratio': 0.1, 'recall_retained': 0.4666666666666667, 'auc_on_scored_candidates': 0.6145022954724447, 'precision@50': 0.0084, 'recall_retained@50': 0.4666666666666667, 'precision@100': 0.0084, 'recall_retained@100': 0.4666666666666667}}
+2026-04-08 04:38:30 | INFO | kuairand_rec.generate_prerank_topk | Generating prerank topK for splits=['train', 'val', 'test'] topk=100
+2026-04-08 04:42:31 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 1 rows=2000000
+2026-04-08 04:46:23 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 2 rows=2000000
+2026-04-08 04:50:09 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 3 rows=2000000
+2026-04-08 04:53:53 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 4 rows=2000000
+2026-04-08 04:57:40 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 5 rows=2000000
+2026-04-08 05:01:26 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 6 rows=2000000
+2026-04-08 05:03:47 | INFO | kuairand_rec.generate_prerank_topk | Scored train chunk 7 rows=1234500
+2026-04-08 05:04:02 | INFO | kuairand_rec.generate_prerank_topk | Saved train prerank topK: /scratch/ym3447/Rec/artifacts/prerank/train_topk.parquet rows=2646900
+2026-04-08 05:07:51 | INFO | kuairand_rec.generate_prerank_topk | Scored val chunk 1 rows=2000000
+2026-04-08 05:11:38 | INFO | kuairand_rec.generate_prerank_topk | Scored val chunk 2 rows=2000000
+2026-04-08 05:15:24 | INFO | kuairand_rec.generate_prerank_topk | Scored val chunk 3 rows=2000000
+2026-04-08 05:19:08 | INFO | kuairand_rec.generate_prerank_topk | Scored val chunk 4 rows=2000000
+2026-04-08 05:22:55 | INFO | kuairand_rec.generate_prerank_topk | Scored val chunk 5 rows=2000000
+2026-04-08 05:24:01 | INFO | kuairand_rec.generate_prerank_topk | Scored val chunk 6 rows=592000
+2026-04-08 05:24:13 | INFO | kuairand_rec.generate_prerank_topk | Saved val prerank topK: /scratch/ym3447/Rec/artifacts/prerank/val_topk.parquet rows=2118400
+2026-04-08 05:28:06 | INFO | kuairand_rec.generate_prerank_topk | Scored test chunk 1 rows=2000000
+2026-04-08 05:31:53 | INFO | kuairand_rec.generate_prerank_topk | Scored test chunk 2 rows=2000000
+2026-04-08 05:35:40 | INFO | kuairand_rec.generate_prerank_topk | Scored test chunk 3 rows=2000000
+2026-04-08 05:39:24 | INFO | kuairand_rec.generate_prerank_topk | Scored test chunk 4 rows=2000000
+2026-04-08 05:43:09 | INFO | kuairand_rec.generate_prerank_topk | Scored test chunk 5 rows=2000000
+2026-04-08 05:45:42 | INFO | kuairand_rec.generate_prerank_topk | Scored test chunk 6 rows=1354500
+2026-04-08 05:45:55 | INFO | kuairand_rec.generate_prerank_topk | Saved test prerank topK: /scratch/ym3447/Rec/artifacts/prerank/test_topk.parquet rows=2270900
+2026-04-08 05:45:55 | INFO | kuairand_rec.generate_prerank_topk | Saved prerank inference metrics: /scratch/ym3447/Rec/artifacts/metrics/prerank_metrics.json
+2026-04-08 05:45:55 | INFO | kuairand_rec.generate_prerank_topk | Prerank topK metrics summary: {'train': {'input_candidates': 13234500, 'output_candidates': 2646900, 'num_users': 26469, 'input_positive': 265859, 'output_positive': 189434, 'candidate_compression_ratio': 0.2, 'recall_retained': 0.7125355921747994, 'auc_on_scored_candidates': 0.7573002179344807, 'precision@50': 0.10224489024897049, 'recall_retained@50': 0.5089765627644729, 'precision@100': 0.07156824965053458, 'recall_retained@100': 0.7125355921747994}, 'val': {'input_candidates': 10592000, 'output_candidates': 2118400, 'num_users': 21184, 'input_positive': 15810, 'output_positive': 10435, 'candidate_compression_ratio': 0.2, 'recall_retained': 0.6600253004427578, 'auc_on_scored_candidates': 0.6671468711939562, 'precision@50': 0.006701283987915408, 'recall_retained@50': 0.4489563567362429, 'precision@100': 0.004925887462235649, 'recall_retained@100': 0.6600253004427578}, 'test': {'input_candidates': 11354500, 'output_candidates': 2270900, 'num_users': 22709, 'input_positive': 22331, 'output_positive': 14101, 'candidate_compression_ratio': 0.2, 'recall_retained': 0.6314540325108593, 'auc_on_scored_candidates': 0.6606133313768298, 'precision@50': 0.008361442599850279, 'recall_retained@50': 0.42514889615332946, 'precision@100': 0.006209432383636444, 'recall_retained@100': 0.6314540325108593}}

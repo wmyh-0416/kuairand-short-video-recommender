@@ -1,0 +1,8 @@
+2026-04-07 23:16:19 | INFO | kuairand_rec.train_recall | Training recall artifacts into: /scratch/ym3447/Rec/artifacts_smoke_auto/recall
+2026-04-07 23:16:19 | INFO | kuairand_rec.train_recall | Loaded train split rows=1000 users=44 items=723
+2026-04-07 23:16:19 | INFO | kuairand_rec.train_recall | Trained popular recall: items=723 topk=300 best_score=15.4189
+2026-04-07 23:16:19 | INFO | kuairand_rec.train_recall | Saved popular recall table: /scratch/ym3447/Rec/artifacts_smoke_auto/recall/popular_items.parquet rows=300
+2026-04-07 23:16:19 | INFO | kuairand_rec.train_recall | Trained ItemCF: users=37 source_items=0 edges=0
+2026-04-07 23:16:19 | INFO | kuairand_rec.train_recall | Saved ItemCF neighbors: /scratch/ym3447/Rec/artifacts_smoke_auto/recall/itemcf_neighbors.parquet rows=0
+2026-04-07 23:16:19 | WARNING | kuairand_rec.train_recall | PyTorch is not installed; skip two-tower recall training.
+2026-04-07 23:16:19 | INFO | kuairand_rec.train_recall | Recall training finished.

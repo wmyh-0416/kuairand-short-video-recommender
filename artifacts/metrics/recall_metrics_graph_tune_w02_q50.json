@@ -1,0 +1,102 @@
+{
+  "test": {
+    "coverage@100": 0.936173018594224,
+    "coverage@200": 0.9903732032177238,
+    "coverage@50": 0.8650929711196097,
+    "coverage_all": 0.999604378214427,
+    "num_candidates": 11354500,
+    "num_positive_pairs": 42509,
+    "num_users": 22709,
+    "recall@100": 0.1982403726269731,
+    "recall@200": 0.2883859888494201,
+    "recall@50": 0.10186078242254581,
+    "source_candidate_counts": {
+      "graph_emb": 6427200,
+      "itemcf": 6370710,
+      "popular": 6438615,
+      "twotower": 6812700
+    },
+    "source_overlap": {
+      "graph_emb__itemcf": {
+        "intersection": 342887,
+        "jaccard": 0.027530017407434736,
+        "union": 12455023
+      },
+      "graph_emb__popular": {
+        "intersection": 101144,
+        "jaccard": 0.007923745155672245,
+        "union": 12764671
+      },
+      "graph_emb__twotower": {
+        "intersection": 1148893,
+        "jaccard": 0.09502045611254711,
+        "union": 12091007
+      },
+      "itemcf__popular": {
+        "intersection": 3498746,
+        "jaccard": 0.3757817854292413,
+        "union": 9310579
+      },
+      "itemcf__twotower": {
+        "intersection": 683121,
+        "jaccard": 0.054648416528609856,
+        "union": 12500289
+      },
+      "popular__twotower": {
+        "intersection": 224572,
+        "jaccard": 0.017239305327509724,
+        "union": 13026743
+      }
+    }
+  },
+  "val": {
+    "coverage@100": 0.9273374653830938,
+    "coverage@200": 0.9876038507187129,
+    "coverage@50": 0.8562574179084795,
+    "coverage_all": 0.999604378214427,
+    "num_candidates": 10592000,
+    "num_positive_pairs": 29617,
+    "num_users": 21184,
+    "recall@100": 0.20944052402336497,
+    "recall@200": 0.3051625755478273,
+    "recall@50": 0.10652665698754094,
+    "source_candidate_counts": {
+      "graph_emb": 6076500,
+      "itemcf": 6024982,
+      "popular": 5993811,
+      "twotower": 6355200
+    },
+    "source_overlap": {
+      "graph_emb__itemcf": {
+        "intersection": 317053,
+        "jaccard": 0.026904400713857243,
+        "union": 11784429
+      },
+      "graph_emb__popular": {
+        "intersection": 91792,
+        "jaccard": 0.007663050832911815,
+        "union": 11978519
+      },
+      "graph_emb__twotower": {
+        "intersection": 1081223,
+        "jaccard": 0.09525793497489136,
+        "union": 11350477
+      },
+      "itemcf__popular": {
+        "intersection": 3302424,
+        "jaccard": 0.37887611228941775,
+        "union": 8716369
+      },
+      "itemcf__twotower": {
+        "intersection": 635598,
+        "jaccard": 0.05411839193282623,
+        "union": 11744584
+      },
+      "popular__twotower": {
+        "intersection": 206683,
+        "jaccard": 0.01702169468655434,
+        "union": 12142328
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "inference": {
+    "test": {
+      "auc_on_scored_candidates": 0.6606133313768298,
+      "candidate_compression_ratio": 0.2,
+      "input_candidates": 11354500,
+      "input_positive": 22331,
+      "num_users": 22709,
+      "output_candidates": 2270900,
+      "output_positive": 14101,
+      "precision@100": 0.006209432383636444,
+      "precision@50": 0.008361442599850279,
+      "recall_retained": 0.6314540325108593,
+      "recall_retained@100": 0.6314540325108593,
+      "recall_retained@50": 0.42514889615332946
+    },
+    "train": {
+      "auc_on_scored_candidates": 0.7573002179344807,
+      "candidate_compression_ratio": 0.2,
+      "input_candidates": 13234500,
+      "input_positive": 265859,
+      "num_users": 26469,
+      "output_candidates": 2646900,
+      "output_positive": 189434,
+      "precision@100": 0.07156824965053458,
+      "precision@50": 0.10224489024897049,
+      "recall_retained": 0.7125355921747994,
+      "recall_retained@100": 0.7125355921747994,
+      "recall_retained@50": 0.5089765627644729
+    },
+    "val": {
+      "auc_on_scored_candidates": 0.6671468711939562,
+      "candidate_compression_ratio": 0.2,
+      "input_candidates": 10592000,
+      "input_positive": 15810,
+      "num_users": 21184,
+      "output_candidates": 2118400,
+      "output_positive": 10435,
+      "precision@100": 0.004925887462235649,
+      "precision@50": 0.006701283987915408,
+      "recall_retained": 0.6600253004427578,
+      "recall_retained@100": 0.6600253004427578,
+      "recall_retained@50": 0.4489563567362429
+    }
+  },
+  "train": {
+    "categorical_features": [
+      "user_id",
+      "video_id",
+      "recall_source",
+      "user_active_degree",
+      "follow_user_num_range",
+      "fans_user_num_range",
+      "friend_user_num_range",
+      "register_days_range",
+      "author_id",
+      "tag",
+      "video_type",
+      "upload_type",
+      "visible_status",
+      "music_type"
+    ],
+    "model_type": "lightgbm",
+    "num_features": 76,
+    "train_auc": 0.8648182724030662,
+    "train_positive": 265859,
+    "train_rows": 1316739,
+    "val_auc": 0.8149483364445791,
+    "val_positive": 15810,
+    "val_rows": 173600
+  }
+}

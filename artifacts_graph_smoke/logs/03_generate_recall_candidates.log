@@ -1,0 +1,20 @@
+2026-04-08 00:51:02 | INFO | kuairand_rec.generate_recall | Generating recall candidates for splits: ['train', 'val', 'test']
+2026-04-08 00:51:03 | INFO | kuairand_rec.generate_recall | Generated popular candidates for train: rows=39300
+2026-04-08 00:51:03 | INFO | kuairand_rec.generate_recall | Generated ItemCF candidates for train: rows=0
+2026-04-08 00:51:03 | INFO | kuairand_rec.generate_recall | Generated graph_emb candidates for train: rows=18135
+2026-04-08 00:51:04 | INFO | kuairand_rec.generate_recall | Merged recall candidates for train: rows=6550 users=131 positives=268
+2026-04-08 00:51:04 | INFO | kuairand_rec.generate_recall | Saved train recall candidates: /scratch/ym3447/Rec/artifacts_graph_smoke/recall/train_candidates.parquet
+2026-04-08 00:51:04 | INFO | kuairand_rec.generate_recall | Generated popular candidates for val: rows=37066
+2026-04-08 00:51:04 | INFO | kuairand_rec.generate_recall | Generated ItemCF candidates for val: rows=0
+2026-04-08 00:51:04 | INFO | kuairand_rec.generate_recall | Generated graph_emb candidates for val: rows=13008
+2026-04-08 00:51:05 | INFO | kuairand_rec.generate_recall | Merged recall candidates for val: rows=6250 users=125 positives=6
+2026-04-08 00:51:05 | INFO | kuairand_rec.generate_recall | Saved val recall candidates: /scratch/ym3447/Rec/artifacts_graph_smoke/recall/val_candidates.parquet
+2026-04-08 00:51:05 | INFO | kuairand_rec.generate_recall | Generated popular candidates for test: rows=33229
+2026-04-08 00:51:05 | INFO | kuairand_rec.generate_recall | Generated ItemCF candidates for test: rows=0
+2026-04-08 00:51:05 | INFO | kuairand_rec.generate_recall | Generated graph_emb candidates for test: rows=11664
+2026-04-08 00:51:06 | INFO | kuairand_rec.generate_recall | Merged recall candidates for test: rows=5600 users=112 positives=9
+2026-04-08 00:51:06 | INFO | kuairand_rec.generate_recall | Saved test recall candidates: /scratch/ym3447/Rec/artifacts_graph_smoke/recall/test_candidates.parquet
+2026-04-08 00:51:06 | INFO | kuairand_rec.generate_recall | Saved recall metrics: /scratch/ym3447/Rec/artifacts_graph_smoke/metrics/recall_metrics.json
+2026-04-08 00:51:06 | INFO | kuairand_rec.generate_recall | train metrics summary: {'num_candidates': 6550, 'coverage_all': 0.03310035605960702, 'recall@50': 0.7507002801120448, 'recall@100': 0.7507002801120448, 'recall@200': 0.7507002801120448}
+2026-04-08 00:51:06 | INFO | kuairand_rec.generate_recall | val metrics summary: {'num_candidates': 6250, 'coverage_all': 0.029276012132401424, 'recall@50': 0.05714285714285714, 'recall@100': 0.05714285714285714, 'recall@200': 0.05714285714285714}
+2026-04-08 00:51:06 | INFO | kuairand_rec.generate_recall | test metrics summary: {'num_candidates': 5600, 'coverage_all': 0.029539759989450087, 'recall@50': 0.0989010989010989, 'recall@100': 0.0989010989010989, 'recall@200': 0.0989010989010989}

@@ -1,0 +1,8 @@
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Training recall artifacts into: /scratch/ym3447/Rec/artifacts_smoke/recall
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Loaded train split rows=1311 users=131 items=910
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Trained popular recall: items=910 topk=300 best_score=16.0098
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Saved popular recall table: /scratch/ym3447/Rec/artifacts_smoke/recall/popular_items.parquet rows=300
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Trained ItemCF: users=83 source_items=0 edges=0
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Saved ItemCF neighbors: /scratch/ym3447/Rec/artifacts_smoke/recall/itemcf_neighbors.parquet rows=0
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Two-tower recall is disabled by config.
+2026-04-07 23:15:51 | INFO | kuairand_rec.train_recall | Recall training finished.

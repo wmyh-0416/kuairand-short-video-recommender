@@ -1,0 +1,71 @@
+{
+  "test": {
+    "coverage@100": 0.029539759989450087,
+    "coverage@200": 0.029539759989450087,
+    "coverage@50": 0.029539759989450087,
+    "coverage_all": 0.029539759989450087,
+    "num_candidates": 5600,
+    "num_positive_pairs": 91,
+    "num_users": 112,
+    "recall@100": 0.0989010989010989,
+    "recall@200": 0.0989010989010989,
+    "recall@50": 0.0989010989010989,
+    "source_candidate_counts": {
+      "graph_emb": 11664,
+      "popular": 33229
+    },
+    "source_overlap": {
+      "graph_emb__popular": {
+        "intersection": 11664,
+        "jaccard": 0.3510186884949893,
+        "union": 33229
+      }
+    }
+  },
+  "train": {
+    "coverage@100": 0.03310035605960702,
+    "coverage@200": 0.03310035605960702,
+    "coverage@50": 0.03310035605960702,
+    "coverage_all": 0.03310035605960702,
+    "num_candidates": 6550,
+    "num_positive_pairs": 357,
+    "num_users": 131,
+    "recall@100": 0.7507002801120448,
+    "recall@200": 0.7507002801120448,
+    "recall@50": 0.7507002801120448,
+    "source_candidate_counts": {
+      "graph_emb": 18135,
+      "popular": 39300
+    },
+    "source_overlap": {
+      "graph_emb__popular": {
+        "intersection": 18135,
+        "jaccard": 0.4614503816793893,
+        "union": 39300
+      }
+    }
+  },
+  "val": {
+    "coverage@100": 0.029276012132401424,
+    "coverage@200": 0.029276012132401424,
+    "coverage@50": 0.029276012132401424,
+    "coverage_all": 0.029276012132401424,
+    "num_candidates": 6250,
+    "num_positive_pairs": 105,
+    "num_users": 125,
+    "recall@100": 0.05714285714285714,
+    "recall@200": 0.05714285714285714,
+    "recall@50": 0.05714285714285714,
+    "source_candidate_counts": {
+      "graph_emb": 13008,
+      "popular": 37066
+    },
+    "source_overlap": {
+      "graph_emb__popular": {
+        "intersection": 13008,
+        "jaccard": 0.3509415636971888,
+        "union": 37066
+      }
+    }
+  }
+}

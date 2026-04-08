@@ -1,0 +1,220 @@
+{
+  "pipeline_summary": {
+    "test": {
+      "prerank_recall_retained@100": 0.6314540325108593,
+      "prerank_top100": 2270900,
+      "rank_candidates": 2270900,
+      "rank_ndcg@20": 0.03592114437735053,
+      "recall@100": 0.23430332400197607,
+      "recall_candidates": 11354500,
+      "rerank_after_avg_freshness_days": 28.1966,
+      "rerank_after_avg_unique_tags_per_user": 4.8,
+      "rerank_after_ndcg@20": 0.02631757726726157,
+      "rerank_before_avg_freshness_days": 28.194799423217773,
+      "rerank_before_avg_unique_tags_per_user": 4.662,
+      "rerank_before_ndcg@20": 0.02633558117377295,
+      "rerank_delta_ndcg@20": -1.8003906511382395e-05
+    },
+    "val": {
+      "prerank_recall_retained@100": 0.6600253004427578,
+      "prerank_top100": 2118400,
+      "rank_candidates": 2118400,
+      "rank_ndcg@20": 0.02947262809407394,
+      "recall@100": 0.24756052267278927,
+      "recall_candidates": 10592000,
+      "rerank_after_avg_freshness_days": 20.205,
+      "rerank_after_avg_unique_tags_per_user": 4.906,
+      "rerank_after_ndcg@20": 0.016621163331262494,
+      "rerank_before_avg_freshness_days": 20.20240020751953,
+      "rerank_before_avg_unique_tags_per_user": 4.768,
+      "rerank_before_ndcg@20": 0.016671945081448418,
+      "rerank_delta_ndcg@20": -5.078175018592354e-05
+    }
+  },
+  "prerank": {
+    "test": {
+      "candidate_compression_ratio": 0.2,
+      "output_candidates": 2270900,
+      "recall_retained@100": 0.6314540325108593
+    },
+    "val": {
+      "candidate_compression_ratio": 0.2,
+      "output_candidates": 2118400,
+      "recall_retained@100": 0.6600253004427578
+    }
+  },
+  "rank": {
+    "test": {
+      "finish_auc": 0.6663208454620589,
+      "finish_logloss": 0.059730659619170554,
+      "like_auc": 0.6218724662548436,
+      "like_logloss": 0.004466041272553434,
+      "long_watch_auc": 0.5837891809070374,
+      "long_watch_logloss": 0.14975131884885176,
+      "mrr@10": 0.02050756744930861,
+      "ndcg@10": 0.02314216735875194,
+      "ndcg@20": 0.03592114437735053,
+      "num_candidates": 2270900,
+      "num_users": 22709,
+      "positive_any": 14101,
+      "rank_auc": 0.5844769407586917
+    },
+    "val": {
+      "finish_auc": 0.6595517297911745,
+      "finish_logloss": 0.052006538922658094,
+      "like_auc": 0.6200917324494221,
+      "like_logloss": 0.0037214518210876555,
+      "long_watch_auc": 0.5745860044021092,
+      "long_watch_logloss": 0.1360386727355377,
+      "mrr@10": 0.015644275553877138,
+      "ndcg@10": 0.018293167242668277,
+      "ndcg@20": 0.02947262809407394,
+      "num_candidates": 2118400,
+      "num_users": 21184,
+      "positive_any": 10435,
+      "rank_auc": 0.5753376648384751
+    }
+  },
+  "recall": {
+    "test": {
+      "coverage_all": 0.999604378214427,
+      "num_candidates": 11354500,
+      "recall@100": 0.23430332400197607,
+      "recall@200": 0.2972546990049166,
+      "recall@50": 0.17309275682796585
+    },
+    "val": {
+      "coverage_all": 0.9994725042859027,
+      "num_candidates": 10592000,
+      "recall@100": 0.24756052267278927,
+      "recall@200": 0.31508930681703073,
+      "recall@50": 0.18323935577539927
+    }
+  },
+  "rerank": {
+    "test": {
+      "after": {
+        "adjacent_same_author_rate": 0.0022,
+        "adjacent_same_tag_rate": 0.23940000000000003,
+        "author_coverage_all": 0.3071391884951207,
+        "avg_freshness_days": 28.1966,
+        "avg_unique_authors_per_user": 9.916,
+        "avg_unique_tags_per_user": 4.8,
+        "fresh_share_leq_threshold": 0.0,
+        "median_freshness_days": 28.0,
+        "mrr@10": 0.013856349206349207,
+        "ndcg@10": 0.02631757726726157,
+        "ndcg@20": 0.02631757726726157,
+        "num_rows": 5000,
+        "num_users": 500,
+        "p90_freshness_days": 29.0,
+        "positive_hits": 37,
+        "recall@10": 0.11708860759493671,
+        "recall@20": 0.11708860759493671,
+        "tag_coverage_all": 0.6307692307692307
+      },
+      "before": {
+        "adjacent_same_author_rate": 0.005600000000000001,
+        "adjacent_same_tag_rate": 0.2606,
+        "author_coverage_all": 0.3066255778120185,
+        "avg_freshness_days": 28.194799423217773,
+        "avg_unique_authors_per_user": 9.904,
+        "avg_unique_tags_per_user": 4.662,
+        "fresh_share_leq_threshold": 0.0,
+        "median_freshness_days": 28.0,
+        "mrr@10": 0.01392063492063492,
+        "ndcg@10": 0.02633558117377295,
+        "ndcg@20": 0.02633558117377295,
+        "num_rows": 5000,
+        "num_users": 500,
+        "p90_freshness_days": 29.0,
+        "positive_hits": 37,
+        "recall@10": 0.11708860759493671,
+        "recall@20": 0.11708860759493671,
+        "tag_coverage_all": 0.6307692307692307
+      },
+      "delta": {
+        "adjacent_same_author_rate": -0.0034000000000000007,
+        "adjacent_same_tag_rate": -0.02119999999999997,
+        "author_coverage_all": 0.0005136106831021836,
+        "avg_freshness_days": 0.0018005767822266705,
+        "avg_unique_authors_per_user": 0.012000000000000455,
+        "avg_unique_tags_per_user": 0.1379999999999999,
+        "fresh_share_leq_threshold": 0.0,
+        "median_freshness_days": 0.0,
+        "mrr@10": -6.42857142857129e-05,
+        "ndcg@10": -1.8003906511382395e-05,
+        "ndcg@20": -1.8003906511382395e-05,
+        "num_rows": 0.0,
+        "num_users": 0.0,
+        "p90_freshness_days": 0.0,
+        "positive_hits": 0.0,
+        "recall@10": 0.0,
+        "recall@20": 0.0,
+        "tag_coverage_all": 0.0
+      }
+    },
+    "val": {
+      "after": {
+        "adjacent_same_author_rate": 0.0028,
+        "adjacent_same_tag_rate": 0.2254,
+        "author_coverage_all": 0.314785373608903,
+        "avg_freshness_days": 20.205,
+        "avg_unique_authors_per_user": 9.912,
+        "avg_unique_tags_per_user": 4.906,
+        "fresh_share_leq_threshold": 0.5776,
+        "median_freshness_days": 20.0,
+        "mrr@10": 0.01031031746031746,
+        "ndcg@10": 0.016621163331262494,
+        "ndcg@20": 0.016621163331262494,
+        "num_rows": 5000,
+        "num_users": 500,
+        "p90_freshness_days": 21.0,
+        "positive_hits": 22,
+        "recall@10": 0.09865470852017937,
+        "recall@20": 0.09865470852017937,
+        "tag_coverage_all": 0.609375
+      },
+      "before": {
+        "adjacent_same_author_rate": 0.0058000000000000005,
+        "adjacent_same_tag_rate": 0.2466,
+        "author_coverage_all": 0.3158452570217276,
+        "avg_freshness_days": 20.20240020751953,
+        "avg_unique_authors_per_user": 9.904,
+        "avg_unique_tags_per_user": 4.768,
+        "fresh_share_leq_threshold": 0.5792,
+        "median_freshness_days": 20.0,
+        "mrr@10": 0.010338095238095238,
+        "ndcg@10": 0.016671945081448418,
+        "ndcg@20": 0.016671945081448418,
+        "num_rows": 5000,
+        "num_users": 500,
+        "p90_freshness_days": 21.0,
+        "positive_hits": 22,
+        "recall@10": 0.09865470852017937,
+        "recall@20": 0.09865470852017937,
+        "tag_coverage_all": 0.609375
+      },
+      "delta": {
+        "adjacent_same_author_rate": -0.0030000000000000005,
+        "adjacent_same_tag_rate": -0.021200000000000024,
+        "author_coverage_all": -0.0010598834128245915,
+        "avg_freshness_days": 0.0025997924804670447,
+        "avg_unique_authors_per_user": 0.008000000000000895,
+        "avg_unique_tags_per_user": 0.1379999999999999,
+        "fresh_share_leq_threshold": -0.0016000000000000458,
+        "median_freshness_days": 0.0,
+        "mrr@10": -2.777777777777761e-05,
+        "ndcg@10": -5.078175018592354e-05,
+        "ndcg@20": -5.078175018592354e-05,
+        "num_rows": 0.0,
+        "num_users": 0.0,
+        "p90_freshness_days": 0.0,
+        "positive_hits": 0.0,
+        "recall@10": 0.0,
+        "recall@20": 0.0,
+        "tag_coverage_all": 0.0
+      }
+    }
+  }
+}

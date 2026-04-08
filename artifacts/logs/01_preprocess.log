@@ -1,0 +1,62 @@
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Loaded config: /scratch/ym3447/Rec/configs/preprocess.yaml
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Project root: /scratch/ym3447/Rec
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Starting preprocessing. processed_dir=/scratch/ym3447/Rec/processed_smoke
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Reading log file: /scratch/ym3447/Rec/KuaiRand-Pure/data/log_standard_4_08_to_4_21_pure.csv
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Reading log file: /scratch/ym3447/Rec/KuaiRand-Pure/data/log_standard_4_22_to_5_08_pure.csv
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Loaded interactions: rows=2000, users=168, items=1244
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Reading user features: /scratch/ym3447/Rec/KuaiRand-Pure/data/user_features_pure.csv
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Reading item basic features: /scratch/ym3447/Rec/KuaiRand-Pure/data/video_features_basic_pure.csv
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Reading item statistic features: /scratch/ym3447/Rec/KuaiRand-Pure/data/video_features_statistic_pure.csv
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Loaded item features: rows=7583
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Prepared interactions: rows=2000 labels={like:0.0095, finish:0.1385, long_watch:0.2725}
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Split train rows=1311 users=131 items=910 date_range=[20220409, 20220424]
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Split val   rows=372 users=125 items=317 date_range=[20220425, 20220430]
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Split test  rows=317 users=112 items=271 date_range=[20220501, 20220508]
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Built user sequences: users=131 max_seq_len=50
+2026-04-07 22:49:09 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed_smoke/interactions.parquet rows=2000 cols=31
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed_smoke/user_features.parquet rows=27285 cols=31
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed_smoke/item_features.parquet rows=7583 cols=65
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed_smoke/user_sequences.parquet rows=131 cols=6
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed_smoke/splits/train.parquet rows=1311 cols=31
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed_smoke/splits/val.parquet rows=372 cols=31
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed_smoke/splits/test.parquet rows=317 cols=31
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Preprocessing finished.
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess | Written outputs:
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess |   interactions -> /scratch/ym3447/Rec/processed_smoke/interactions.parquet
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess |   user_features -> /scratch/ym3447/Rec/processed_smoke/user_features.parquet
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess |   item_features -> /scratch/ym3447/Rec/processed_smoke/item_features.parquet
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess |   user_sequences -> /scratch/ym3447/Rec/processed_smoke/user_sequences.parquet
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess |   split_train -> /scratch/ym3447/Rec/processed_smoke/splits/train.parquet
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess |   split_val -> /scratch/ym3447/Rec/processed_smoke/splits/val.parquet
+2026-04-07 22:49:10 | INFO | kuairand_rec.preprocess |   split_test -> /scratch/ym3447/Rec/processed_smoke/splits/test.parquet
+2026-04-07 22:49:16 | INFO | kuairand_rec.preprocess | Loaded config: /scratch/ym3447/Rec/configs/preprocess.yaml
+2026-04-07 22:49:16 | INFO | kuairand_rec.preprocess | Project root: /scratch/ym3447/Rec
+2026-04-07 22:49:16 | INFO | kuairand_rec.preprocess | Starting preprocessing. processed_dir=/scratch/ym3447/Rec/processed
+2026-04-07 22:49:16 | INFO | kuairand_rec.preprocess | Reading log file: /scratch/ym3447/Rec/KuaiRand-Pure/data/log_standard_4_08_to_4_21_pure.csv
+2026-04-07 22:49:18 | INFO | kuairand_rec.preprocess | Reading log file: /scratch/ym3447/Rec/KuaiRand-Pure/data/log_standard_4_22_to_5_08_pure.csv
+2026-04-07 22:49:18 | INFO | kuairand_rec.preprocess | Loaded interactions: rows=1436609, users=27077, items=7551
+2026-04-07 22:49:18 | INFO | kuairand_rec.preprocess | Reading user features: /scratch/ym3447/Rec/KuaiRand-Pure/data/user_features_pure.csv
+2026-04-07 22:49:18 | INFO | kuairand_rec.preprocess | Reading item basic features: /scratch/ym3447/Rec/KuaiRand-Pure/data/video_features_basic_pure.csv
+2026-04-07 22:49:18 | INFO | kuairand_rec.preprocess | Reading item statistic features: /scratch/ym3447/Rec/KuaiRand-Pure/data/video_features_statistic_pure.csv
+2026-04-07 22:49:18 | INFO | kuairand_rec.preprocess | Loaded item features: rows=7583
+2026-04-07 22:49:21 | INFO | kuairand_rec.preprocess | Prepared interactions: rows=1436609 labels={like:0.0185, finish:0.1761, long_watch:0.3318}
+2026-04-07 22:49:21 | INFO | kuairand_rec.preprocess | Split train rows=1208280 users=26469 items=7542 date_range=[20220409, 20220424]
+2026-04-07 22:49:21 | INFO | kuairand_rec.preprocess | Split val   rows=94784 users=21184 items=5564 date_range=[20220425, 20220430]
+2026-04-07 22:49:21 | INFO | kuairand_rec.preprocess | Split test  rows=133545 users=22709 items=5722 date_range=[20220501, 20220508]
+2026-04-07 22:49:49 | INFO | kuairand_rec.preprocess | Built user sequences: users=26469 max_seq_len=50
+2026-04-07 22:49:49 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed/interactions.parquet rows=1436609 cols=31
+2026-04-07 22:49:50 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed/user_features.parquet rows=27285 cols=31
+2026-04-07 22:49:51 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed/item_features.parquet rows=7583 cols=65
+2026-04-07 22:49:51 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed/user_sequences.parquet rows=26469 cols=6
+2026-04-07 22:49:51 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed/splits/train.parquet rows=1208280 cols=31
+2026-04-07 22:49:52 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed/splits/val.parquet rows=94784 cols=31
+2026-04-07 22:49:52 | INFO | kuairand_rec.preprocess | Writing parquet: /scratch/ym3447/Rec/processed/splits/test.parquet rows=133545 cols=31
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess | Preprocessing finished.
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess | Written outputs:
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess |   interactions -> /scratch/ym3447/Rec/processed/interactions.parquet
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess |   user_features -> /scratch/ym3447/Rec/processed/user_features.parquet
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess |   item_features -> /scratch/ym3447/Rec/processed/item_features.parquet
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess |   user_sequences -> /scratch/ym3447/Rec/processed/user_sequences.parquet
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess |   split_train -> /scratch/ym3447/Rec/processed/splits/train.parquet
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess |   split_val -> /scratch/ym3447/Rec/processed/splits/val.parquet
+2026-04-07 22:49:53 | INFO | kuairand_rec.preprocess |   split_test -> /scratch/ym3447/Rec/processed/splits/test.parquet

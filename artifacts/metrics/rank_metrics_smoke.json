@@ -1,0 +1,37 @@
+{
+  "inference": {
+    "val": {
+      "finish_auc": 0.5747098625352705,
+      "finish_logloss": 0.0805498160305835,
+      "like_auc": 0.28356417820891044,
+      "like_logloss": 0.03759656444219788,
+      "long_watch_auc": 0.5120219757498781,
+      "long_watch_logloss": 0.14811028746514077,
+      "mrr@10": 0.0067222222222222214,
+      "ndcg@10": 0.010001771745036666,
+      "ndcg@20": 0.016436230902837006,
+      "num_candidates": 20000,
+      "num_users": 200,
+      "positive_any": 85,
+      "rank_auc": 0.5068133685811759
+    }
+  },
+  "train": {
+    "best": {
+      "epoch": 1,
+      "finish_auc": 0.5751048417842166,
+      "finish_logloss": 0.2110796260603639,
+      "like_auc": 0.5592868988391376,
+      "like_logloss": 0.04431009800192253,
+      "long_watch_auc": 0.49723791392278643,
+      "long_watch_logloss": 0.35534761150281313,
+      "loss": 0.5773833990097046,
+      "rank_auc": 0.49414812271776787,
+      "train_loss": 1.549154832959175
+    },
+    "train_positive_any": 3059,
+    "train_rows": 14370,
+    "val_positive_any": 179,
+    "val_rows": 1611
+  }
+}

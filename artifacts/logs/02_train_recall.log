@@ -1,0 +1,39 @@
+2026-04-07 23:27:30 | INFO | kuairand_rec.train_recall | Training recall artifacts into: /scratch/ym3447/Rec/artifacts/recall
+2026-04-07 23:27:31 | INFO | kuairand_rec.train_recall | Loaded train split rows=1208280 users=26469 items=7542
+2026-04-07 23:27:31 | INFO | kuairand_rec.train_recall | Trained popular recall: items=7542 topk=300 best_score=84.6525
+2026-04-07 23:27:31 | INFO | kuairand_rec.train_recall | Saved popular recall table: /scratch/ym3447/Rec/artifacts/recall/popular_items.parquet rows=300
+2026-04-07 23:27:40 | INFO | kuairand_rec.train_recall | Trained ItemCF: users=25279 source_items=2528 edges=137765
+2026-04-07 23:27:40 | INFO | kuairand_rec.train_recall | Saved ItemCF neighbors: /scratch/ym3447/Rec/artifacts/recall/itemcf_neighbors.parquet rows=137765
+2026-04-07 23:27:40 | WARNING | kuairand_rec.train_recall | PyTorch is not installed; skip two-tower recall training.
+2026-04-07 23:27:40 | INFO | kuairand_rec.train_recall | Recall training finished.
+2026-04-07 23:56:43 | INFO | kuairand_rec.train_recall | Training recall artifacts into: /scratch/ym3447/Rec/artifacts/recall
+2026-04-07 23:56:43 | INFO | kuairand_rec.train_recall | Loaded train split rows=1208280 users=26469 items=7542
+2026-04-07 23:56:44 | INFO | kuairand_rec.train_recall | Trained popular recall: items=7542 topk=300 best_score=84.6525
+2026-04-07 23:56:44 | INFO | kuairand_rec.train_recall | Saved popular recall table: /scratch/ym3447/Rec/artifacts/recall/popular_items.parquet rows=300
+2026-04-07 23:56:53 | INFO | kuairand_rec.train_recall | Trained ItemCF: users=25279 source_items=2528 edges=137765
+2026-04-07 23:56:53 | INFO | kuairand_rec.train_recall | Saved ItemCF neighbors: /scratch/ym3447/Rec/artifacts/recall/itemcf_neighbors.parquet rows=137765
+2026-04-07 23:57:25 | INFO | kuairand_rec.train_recall | Training two-tower: samples=412583 batch_size=2048 epochs=5 device=cpu
+2026-04-07 23:57:37 | INFO | kuairand_rec.train_recall | Two-tower epoch 1/5 loss=7.620047
+2026-04-07 23:57:48 | INFO | kuairand_rec.train_recall | Two-tower epoch 2/5 loss=7.241793
+2026-04-07 23:58:00 | INFO | kuairand_rec.train_recall | Two-tower epoch 3/5 loss=7.039649
+2026-04-07 23:58:12 | INFO | kuairand_rec.train_recall | Two-tower epoch 4/5 loss=6.919879
+2026-04-07 23:58:25 | INFO | kuairand_rec.train_recall | Two-tower epoch 5/5 loss=6.850746
+2026-04-07 23:58:25 | INFO | kuairand_rec.train_recall | Saved two-tower checkpoint: /scratch/ym3447/Rec/artifacts/recall/twotower.pt
+2026-04-07 23:58:25 | INFO | kuairand_rec.train_recall | Saved two-tower item embeddings: /scratch/ym3447/Rec/artifacts/recall/twotower_item_embeddings.npz shape=(7583, 64)
+2026-04-07 23:58:26 | INFO | kuairand_rec.train_recall | Saved two-tower train user embeddings: /scratch/ym3447/Rec/artifacts/recall/twotower_user_embeddings.npz shape=(26469, 64)
+2026-04-07 23:58:26 | INFO | kuairand_rec.train_recall | Recall training finished.
+2026-04-08 00:51:35 | INFO | kuairand_rec.train_recall | Training recall artifacts into: /scratch/ym3447/Rec/artifacts/recall
+2026-04-08 00:51:35 | INFO | kuairand_rec.train_recall | Loaded train split rows=1208280 users=26469 items=7542
+2026-04-08 00:51:35 | INFO | kuairand_rec.train_recall | Trained popular recall: items=7542 topk=300 best_score=84.6525
+2026-04-08 00:51:35 | INFO | kuairand_rec.train_recall | Saved popular recall table: /scratch/ym3447/Rec/artifacts/recall/popular_items.parquet rows=300
+2026-04-08 00:51:44 | INFO | kuairand_rec.train_recall | Trained ItemCF: users=25279 source_items=2528 edges=137765
+2026-04-08 00:51:45 | INFO | kuairand_rec.train_recall | Saved ItemCF neighbors: /scratch/ym3447/Rec/artifacts/recall/itemcf_neighbors.parquet rows=137765
+2026-04-08 00:51:45 | INFO | kuairand_rec.train_recall | Two-tower recall is disabled by config.
+2026-04-08 00:51:50 | INFO | kuairand_rec.train_recall | Built graph_emb item graph: users=25279 nodes=6824 edges=499616
+2026-04-08 00:52:01 | INFO | kuairand_rec.train_recall | Training graph_emb: nodes=6824 edges=499616 walks=20472 pairs=2210976 epochs=2 device=cpu
+2026-04-08 00:52:10 | INFO | kuairand_rec.train_recall | graph_emb epoch 1/2 loss=1.642558
+2026-04-08 00:52:19 | INFO | kuairand_rec.train_recall | graph_emb epoch 2/2 loss=1.322383
+2026-04-08 00:52:20 | INFO | kuairand_rec.train_recall | Saved graph_emb neighbors: /scratch/ym3447/Rec/artifacts/recall/graph_emb_neighbors.parquet rows=499616
+2026-04-08 00:52:20 | INFO | kuairand_rec.train_recall | Saved graph_emb checkpoint: /scratch/ym3447/Rec/artifacts/recall/graph_emb.pt
+2026-04-08 00:52:20 | INFO | kuairand_rec.train_recall | Saved graph_emb item embeddings: /scratch/ym3447/Rec/artifacts/recall/graph_emb_item_embeddings.npz shape=(6824, 64)
+2026-04-08 00:52:20 | INFO | kuairand_rec.train_recall | Recall training finished.

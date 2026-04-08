@@ -1,0 +1,50 @@
+{
+  "test": {
+    "coverage@100": 0.008967427139654491,
+    "coverage@200": 0.008967427139654491,
+    "coverage@50": 0.008967427139654491,
+    "coverage_all": 0.008967427139654491,
+    "num_candidates": 5600,
+    "num_positive_pairs": 91,
+    "num_users": 112,
+    "recall@100": 0.0989010989010989,
+    "recall@200": 0.0989010989010989,
+    "recall@50": 0.0989010989010989,
+    "source_candidate_counts": {
+      "popular": 33229
+    },
+    "source_overlap": {}
+  },
+  "train": {
+    "coverage@100": 0.006593696426216537,
+    "coverage@200": 0.006593696426216537,
+    "coverage@50": 0.006593696426216537,
+    "coverage_all": 0.006593696426216537,
+    "num_candidates": 6550,
+    "num_positive_pairs": 357,
+    "num_users": 131,
+    "recall@100": 0.2913165266106443,
+    "recall@200": 0.2913165266106443,
+    "recall@50": 0.2913165266106443,
+    "source_candidate_counts": {
+      "popular": 39300
+    },
+    "source_overlap": {}
+  },
+  "val": {
+    "coverage@100": 0.008967427139654491,
+    "coverage@200": 0.008967427139654491,
+    "coverage@50": 0.008967427139654491,
+    "coverage_all": 0.008967427139654491,
+    "num_candidates": 6250,
+    "num_positive_pairs": 105,
+    "num_users": 125,
+    "recall@100": 0.047619047619047616,
+    "recall@200": 0.047619047619047616,
+    "recall@50": 0.047619047619047616,
+    "source_candidate_counts": {
+      "popular": 37066
+    },
+    "source_overlap": {}
+  }
+}

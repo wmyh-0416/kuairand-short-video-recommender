@@ -1,0 +1,104 @@
+{
+  "test": {
+    "coverage@100": 0.8958195964657787,
+    "coverage@200": 0.9858894896478966,
+    "coverage@50": 0.7160754318871159,
+    "coverage_all": 0.9990768825003297,
+    "num_candidates": 11354500,
+    "num_positive_pairs": 42509,
+    "num_users": 22709,
+    "recall@100": 0.24133712860805948,
+    "recall@200": 0.3044061257616034,
+    "recall@50": 0.1767390434966713,
+    "source_candidate_counts": {
+      "itemcf": 6370710,
+      "popular": 6438615,
+      "twotower": 6812700
+    },
+    "source_overlap": {
+      "itemcf__popular": {
+        "intersection": 3498746,
+        "jaccard": 0.3757817854292413,
+        "union": 9310579
+      },
+      "itemcf__twotower": {
+        "intersection": 683121,
+        "jaccard": 0.054648416528609856,
+        "union": 12500289
+      },
+      "popular__twotower": {
+        "intersection": 224572,
+        "jaccard": 0.017239305327509724,
+        "union": 13026743
+      }
+    }
+  },
+  "train": {
+    "coverage@100": 0.8701041804035342,
+    "coverage@200": 0.98325201107741,
+    "coverage@50": 0.6877225372543848,
+    "coverage_all": 0.998813134643281,
+    "num_candidates": 13234500,
+    "num_positive_pairs": 412583,
+    "num_users": 26469,
+    "recall@100": 0.3380507679666879,
+    "recall@200": 0.4125884973447767,
+    "recall@50": 0.25293819667800177,
+    "source_candidate_counts": {
+      "itemcf": 7432096,
+      "popular": 7940700,
+      "twotower": 7940700
+    },
+    "source_overlap": {
+      "itemcf__popular": {
+        "intersection": 4295478,
+        "jaccard": 0.38777238317072776,
+        "union": 11077318
+      },
+      "itemcf__twotower": {
+        "intersection": 896785,
+        "jaccard": 0.06194973187019546,
+        "union": 14476011
+      },
+      "popular__twotower": {
+        "intersection": 317540,
+        "jaccard": 0.020402393750650547,
+        "union": 15563860
+      }
+    }
+  },
+  "val": {
+    "coverage@100": 0.8716866675458262,
+    "coverage@200": 0.9811420282210207,
+    "coverage@50": 0.6887775286825795,
+    "coverage_all": 0.9989450085718053,
+    "num_candidates": 10592000,
+    "num_positive_pairs": 29617,
+    "num_users": 21184,
+    "recall@100": 0.25370564202991525,
+    "recall@200": 0.3208630178613634,
+    "recall@50": 0.18688591011918831,
+    "source_candidate_counts": {
+      "itemcf": 6024982,
+      "popular": 5993811,
+      "twotower": 6355200
+    },
+    "source_overlap": {
+      "itemcf__popular": {
+        "intersection": 3302424,
+        "jaccard": 0.37887611228941775,
+        "union": 8716369
+      },
+      "itemcf__twotower": {
+        "intersection": 635598,
+        "jaccard": 0.05411839193282623,
+        "union": 11744584
+      },
+      "popular__twotower": {
+        "intersection": 206683,
+        "jaccard": 0.01702169468655434,
+        "union": 12142328
+      }
+    }
+  }
+}
