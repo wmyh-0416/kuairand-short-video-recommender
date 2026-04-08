@@ -1,0 +1,9 @@
+base_config: configs/recall.yaml
+
+recall:
+  merge:
+    source_weights:
+      graph_emb: 0.05
+    per_source_topk:
+      graph_emb: 20
+    final_topk: 500

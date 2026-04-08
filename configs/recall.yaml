@@ -1,0 +1,103 @@
+base_config: configs/default.yaml
+
+recall:
+  processed:
+    interactions_file: interactions.parquet
+    user_features_file: user_features.parquet
+    item_features_file: item_features.parquet
+    user_sequences_file: user_sequences.parquet
+    splits_dir: splits
+
+  output:
+    recall_dir: recall
+    metrics_dir: metrics
+    popular_items_file: popular_items.parquet
+    itemcf_neighbors_file: itemcf_neighbors.parquet
+    twotower_checkpoint_file: twotower.pt
+    twotower_item_embeddings_file: twotower_item_embeddings.npz
+    twotower_user_embeddings_file: twotower_user_embeddings.npz
+    graph_emb_neighbors_file: graph_emb_neighbors.parquet
+    graph_emb_checkpoint_file: graph_emb.pt
+    graph_emb_item_embeddings_file: graph_emb_item_embeddings.npz
+    recall_metrics_file: recall_metrics.json
+
+  positive_label_col: is_positive
+
+  popular:
+    enabled: true
+    topk: 300
+    candidate_topk: 300
+    exclude_seen: true
+    weights:
+      play_count: 1.0
+      like_count: 6.0
+      long_watch_count: 3.0
+      finish_count: 2.0
+    smoothing: 1.0
+
+  itemcf:
+    enabled: true
+    topk: 300
+    max_neighbors_per_item: 200
+    max_user_history_len: 100
+    min_cooccurrence: 2.0
+    shrinkage: 10.0
+    recency_alpha: 0.92
+    exclude_seen: true
+    sequence_col: watch_seq
+
+  twotower:
+    enabled: true
+    embedding_dim: 64
+    hidden_dims: [128, 64]
+    dropout: 0.1
+    batch_size: 2048
+    epochs: 5
+    learning_rate: 0.001
+    weight_decay: 0.000001
+    temperature: 0.07
+    max_seq_len: 50
+    num_workers: 0
+    label_col: is_positive
+    sequence_col: watch_seq
+    candidate_topk: 300
+    exclude_seen: true
+    device: auto
+
+  graph_emb:
+    enabled: true
+    embedding_dim: 64
+    graph_window_size: 5
+    max_user_history_len: 100
+    min_edge_weight: 0.1
+    max_neighbors_per_item: 200
+    walk_length: 16
+    num_walks_per_node: 3
+    context_window: 4
+    negative_samples: 5
+    batch_size: 4096
+    epochs: 2
+    learning_rate: 0.003
+    weight_decay: 0.000001
+    max_pairs: 3000000
+    candidate_topk: 300
+    exclude_seen: true
+    recency_alpha: 0.92
+    device: auto
+    random_seed: 2026
+
+  merge:
+    source_weights:
+      popular: 0.15
+      itemcf: 0.25
+      twotower: 0.35
+      graph_emb: 0.02
+    per_source_topk:
+      popular: 300
+      itemcf: 300
+      twotower: 300
+      graph_emb: 10
+    final_topk: 500
+
+  eval:
+    topk: [50, 100, 200]

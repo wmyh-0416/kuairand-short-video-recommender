@@ -1,0 +1,29 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Local environments
+.venv/
+venv/
+.env
+
+# OS files
+.DS_Store
+
+# Generated artifacts and large intermediate files
+artifacts/
+artifacts_smoke/
+artifacts_graph_smoke/
+artifacts_smoke_auto/
+processed/
+processed_smoke/
+
+# Archives
+*.tar.gz
+*.zip

@@ -1,0 +1,145 @@
+base_config: configs/default.yaml
+
+prerank:
+  processed:
+    user_features_file: user_features.parquet
+    item_features_file: item_features.parquet
+    user_sequences_file: user_sequences.parquet
+    splits_dir: splits
+
+  input:
+    recall_dir: recall
+    train_candidates_file: train_candidates.parquet
+    val_candidates_file: val_candidates.parquet
+    test_candidates_file: test_candidates.parquet
+
+  output:
+    prerank_dir: prerank
+    metrics_dir: metrics
+    train_samples_file: train_samples.parquet
+    val_samples_file: val_samples.parquet
+    test_samples_file: test_samples.parquet
+    model_file: model.pkl
+    train_topk_file: train_topk.parquet
+    val_topk_file: val_topk.parquet
+    test_topk_file: test_topk.parquet
+    metrics_file: prerank_metrics.json
+
+  label_col: label
+  topk: 100
+  eval_topk: [50, 100]
+
+  sampling:
+    enabled: true
+    negative_sample_ratio: 5
+    val_negative_sample_ratio: 10
+    max_negative_per_user: 80
+    include_users_without_positive: false
+    random_seed: 2026
+
+  features:
+    source_names: [popular, itemcf, twotower, graph_emb]
+    source_score_default: 0.0
+    source_rank_default: 1000000
+    split_reference_dates:
+      train: 20220424
+      val: 20220430
+      test: 20220508
+    use_raw_item_stat_features: false
+    user_categorical_cols:
+      - user_active_degree
+      - follow_user_num_range
+      - fans_user_num_range
+      - friend_user_num_range
+      - register_days_range
+    user_numeric_cols:
+      - is_lowactive_period
+      - is_live_streamer
+      - is_video_author
+      - follow_user_num
+      - fans_user_num
+      - friend_user_num
+      - register_days
+      - onehot_feat0
+      - onehot_feat1
+      - onehot_feat2
+      - onehot_feat3
+      - onehot_feat4
+      - onehot_feat5
+      - onehot_feat6
+      - onehot_feat7
+      - onehot_feat8
+      - onehot_feat9
+      - onehot_feat10
+      - onehot_feat11
+      - onehot_feat12
+      - onehot_feat13
+      - onehot_feat14
+      - onehot_feat15
+      - onehot_feat16
+      - onehot_feat17
+    item_categorical_cols:
+      - author_id
+      - tag
+      - video_type
+      - upload_type
+      - visible_status
+      - music_type
+    item_numeric_cols:
+      - video_duration
+      - server_width
+      - server_height
+      - counts
+    raw_item_stat_cols:
+      - show_cnt
+      - play_cnt
+      - complete_play_cnt
+      - valid_play_cnt
+      - long_time_play_cnt
+      - short_time_play_cnt
+      - like_cnt
+      - comment_cnt
+      - follow_cnt
+      - share_cnt
+      - collect_cnt
+      - play_progress
+
+  model:
+    type: lightgbm
+    lightgbm:
+      objective: binary
+      n_estimators: 350
+      learning_rate: 0.05
+      num_leaves: 63
+      max_depth: -1
+      min_child_samples: 80
+      subsample: 0.85
+      colsample_bytree: 0.85
+      reg_alpha: 0.0
+      reg_lambda: 1.0
+      n_jobs: -1
+      random_state: 2026
+      early_stopping_rounds: 30
+      log_period: 50
+    mlp:
+      hidden_dims: [256, 128, 64]
+      dropout: 0.1
+      batch_size: 4096
+      epochs: 5
+      learning_rate: 0.001
+      weight_decay: 0.000001
+      device: auto
+      num_workers: 0
+
+  inference:
+    batch_rows: 2000000
+    keep_columns:
+      - user_id
+      - video_id
+      - recall_source
+      - source_score
+      - source_rank
+      - merged_score
+      - source_count
+      - merged_rank
+      - label

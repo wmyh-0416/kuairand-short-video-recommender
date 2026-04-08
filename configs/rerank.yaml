@@ -1,0 +1,74 @@
+base_config: configs/default.yaml
+
+rerank:
+  processed:
+    item_features_file: item_features.parquet
+
+  input:
+    rank_dir: rank
+    val_ranked_file: val_ranked.parquet
+    test_ranked_file: test_ranked.parquet
+
+  output:
+    rerank_dir: rerank
+    metrics_dir: metrics
+    val_final_file: val_final.parquet
+    test_final_file: test_final.parquet
+    metrics_file: rerank_metrics.json
+    pipeline_report_file: pipeline_report.json
+
+  split_reference_dates:
+    val: 20220430
+    test: 20220508
+
+  topk: 20
+  eval_topk: [10, 20]
+  mrr_k: 10
+
+  scoring:
+    min_multiplier: 0.55
+    max_multiplier: 1.35
+
+  author:
+    enabled: true
+    max_count_in_topk: 2
+    hard_max_count: true
+    max_consecutive: 1
+    hard_max_consecutive: false
+    repeat_count_penalty: 0.05
+    consecutive_penalty: 0.20
+    new_author_bonus: 0.01
+
+  tag:
+    enabled: true
+    max_count_in_topk: 6
+    hard_max_count: false
+    max_consecutive: 2
+    hard_max_consecutive: false
+    repeat_count_penalty: 0.03
+    consecutive_penalty: 0.10
+    new_tag_bonus: 0.03
+
+  freshness:
+    enabled: true
+    bonus_weight: 0.08
+    half_life_days: 10.0
+    fresh_threshold_days: 20
+
+  inference:
+    splits: [val, test]
+    keep_columns:
+      - user_id
+      - video_id
+      - rank_score
+      - long_watch_score
+      - finish_score
+      - like_score
+      - rank_position
+      - rank_label
+      - long_watch
+      - finish
+      - like
+      - recall_source
+      - merged_score
+      - coarse_score

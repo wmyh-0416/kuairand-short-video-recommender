@@ -1,0 +1,36 @@
+base_config: configs/default.yaml
+
+preprocess:
+  read:
+    # Useful for smoke tests. Set to null to process the full dataset.
+    nrows: null
+    dtype_backend: numpy_nullable
+
+  split:
+    strategy: date
+    train_end_date: 20220424
+    val_start_date: 20220425
+    val_end_date: 20220430
+    test_start_date: 20220501
+
+  labels:
+    finish_ratio_threshold: 0.95
+    long_watch_ratio_threshold: 0.70
+    long_watch_ms_threshold: 18000
+    max_watch_ratio: 5.0
+    use_long_view_column: true
+
+  sequences:
+    max_seq_len: 50
+    min_history_len: 1
+    build_watch_sequence: true
+    build_like_sequence: true
+    build_long_watch_sequence: true
+
+  output:
+    interactions_file: interactions.parquet
+    user_features_file: user_features.parquet
+    item_features_file: item_features.parquet
+    user_sequences_file: user_sequences.parquet
+    splits_dir: splits
+    compression: snappy

@@ -1,0 +1,49 @@
+project:
+  name: kuairand_short_video_rec
+  root_dir: /scratch/ym3447/Rec
+  random_seed: 2026
+
+paths:
+  raw_data_dir: /scratch/ym3447/Rec/KuaiRand-Pure
+  processed_dir: /scratch/ym3447/Rec/processed
+  artifacts_dir: /scratch/ym3447/Rec/artifacts
+  logs_dir: /scratch/ym3447/Rec/artifacts/logs
+
+runtime:
+  log_level: INFO
+  num_workers: 4
+
+data:
+  log_files:
+    standard_train:
+      - data/log_standard_4_08_to_4_21_pure.csv
+      - data/log_standard_4_22_to_5_08_pure.csv
+    random:
+      - data/log_random_4_22_to_5_08_pure.csv
+  user_features_file: data/user_features_pure.csv
+  item_basic_file: data/video_features_basic_pure.csv
+  item_stat_file: data/video_features_statistic_pure.csv
+  include_random_log: false
+
+preprocess:
+  split:
+    strategy: date
+    train_end_date: 20220424
+    val_start_date: 20220425
+    val_end_date: 20220430
+    test_start_date: 20220501
+
+  labels:
+    finish_ratio_threshold: 0.95
+    long_watch_ratio_threshold: 0.70
+    long_watch_ms_threshold: 18000
+    max_watch_ratio: 5.0
+    use_long_view_column: true
+
+  sequences:
+    max_seq_len: 50
+    min_history_len: 1
+    positive_watch_expr: "long_watch == 1 or finish == 1 or like == 1"
+
+  output:
+    compression: snappy
