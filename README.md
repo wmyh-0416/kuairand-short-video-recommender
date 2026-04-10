@@ -301,15 +301,7 @@ That is also why it is suitable for recommendation algorithm resumes and intervi
 - Introduce context features like time segment, tab, and scenario context
 - Run offline ablation studies to compare contributions of graph_emb, twotower, multi-task loss, and rerank constraints
 
-## Documents
 
-- Result summary: [docs/results_summary.md](docs/results_summary.md)
-- Chinese resume version: [docs/resume_cn.md](docs/resume_cn.md)
-- English resume version: [docs/resume_en.md](docs/resume_en.md)
-- Interview notes: [docs/interview_notes.md](docs/interview_notes.md)
-- FAQ notes: [docs/qa_notes.md](docs/qa_notes.md)
-
----
 
 ## 中文版（原文）
 # KuaiRand 四层短视频推荐系统
@@ -615,10 +607,3 @@ Rec/
 - 引入 context 特征，如时间段、tab、场景上下文
 - 做离线 ablation，系统比较 graph_emb、twotower、多任务 loss、rerank 约束的贡献
 
-## 文档
-
-- 结果总结：[docs/results_summary.md](docs/results_summary.md)
-- 中文简历版：[docs/resume_cn.md](docs/resume_cn.md)
-- 英文简历版：[docs/resume_en.md](docs/resume_en.md)
-- 面试讲稿：[docs/interview_notes.md](docs/interview_notes.md)
-- 常见追问：[docs/qa_notes.md](docs/qa_notes.md)
