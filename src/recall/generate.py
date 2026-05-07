@@ -89,6 +89,95 @@ def _filter_seen_and_topk(
     return out.groupby("user_id", as_index=False, group_keys=False).head(topk).reset_index(drop=True)
 
 
+def _twotower_source_name(cfg: Mapping[str, Any]) -> str:
+    return "twotower_faiss" if bool(cfg["recall"]["twotower"].get("use_faiss", False)) else "twotower"
+
+
+def _resolve_optional_artifact_path(cfg: Mapping[str, Any], raw_path: Any) -> Path | None:
+    if raw_path is None:
+        return None
+    value = str(raw_path).strip()
+    if not value:
+        return None
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = artifacts_dir(cfg) / path
+    return path.resolve()
+
+
+def _resolve_faiss_index_path(cfg: Mapping[str, Any]) -> Path:
+    tower_cfg = cfg["recall"]["twotower"]
+    explicit_path = _resolve_optional_artifact_path(cfg, tower_cfg.get("faiss_index_path"))
+    if explicit_path is not None:
+        return explicit_path
+
+    index_type = str(tower_cfg.get("faiss_index_type", "hnsw")).lower()
+    if index_type == "flat":
+        file_name = "faiss_flat.index"
+    elif index_type == "ivf":
+        file_name = "faiss_ivf.index"
+    elif index_type == "hnsw":
+        file_name = "faiss_hnsw.index"
+    else:
+        raise ValueError(f"Unsupported recall.twotower.faiss_index_type: {index_type}")
+    return (artifacts_dir(cfg) / "faiss" / file_name).resolve()
+
+
+def _resolve_faiss_id_map_path(cfg: Mapping[str, Any]) -> Path:
+    tower_cfg = cfg["recall"]["twotower"]
+    explicit_path = _resolve_optional_artifact_path(cfg, tower_cfg.get("faiss_id_map_path"))
+    if explicit_path is not None:
+        return explicit_path
+    return (artifacts_dir(cfg) / "faiss" / "video_id_map.pkl").resolve()
+
+
+def _retrieve_topk_faiss(
+    cfg: Mapping[str, Any],
+    user_ids: np.ndarray,
+    user_vectors: np.ndarray,
+    topk: int,
+    logger: logging.Logger | None = None,
+) -> pd.DataFrame:
+    from src.recall.faiss_service import FaissRecallService
+
+    tower_cfg = cfg["recall"]["twotower"]
+    source_name = _twotower_source_name(cfg)
+    index_path = _resolve_faiss_index_path(cfg)
+    id_map_path = _resolve_faiss_id_map_path(cfg)
+    if not index_path.exists():
+        raise FileNotFoundError(
+            f"FAISS index not found: {index_path}. Build it first with scripts/09_build_faiss_index.py "
+            "or disable recall.twotower.use_faiss."
+        )
+    if not id_map_path.exists():
+        raise FileNotFoundError(
+            f"FAISS id map not found: {id_map_path}. Build it first with scripts/09_build_faiss_index.py "
+            "or disable recall.twotower.use_faiss."
+        )
+
+    service = FaissRecallService(
+        index_path=index_path,
+        id_map_path=id_map_path,
+        normalize=bool(tower_cfg.get("faiss_normalize", True)),
+    )
+    rows: list[dict[str, object]] = []
+    for idx, (user_id, user_vector) in enumerate(zip(user_ids, user_vectors)):
+        results = service.recall(user_vector, top_k=topk)
+        for rank, result in enumerate(results, start=1):
+            rows.append(
+                {
+                    "user_id": int(user_id),
+                    "video_id": int(result["video_id"]),
+                    "recall_source": source_name,
+                    "source_score": float(result["recall_score"]),
+                    "source_rank": int(rank),
+                }
+            )
+        if logger and (idx + 1) % 1000 == 0:
+            logger.info("FAISS two-tower recall progress: users=%d/%d", idx + 1, len(user_ids))
+    return pd.DataFrame(rows, columns=["user_id", "video_id", "recall_source", "source_score", "source_rank"])
+
+
 def generate_twotower_candidates_if_available(
     cfg: Mapping[str, Any],
     split: str,
@@ -107,13 +196,21 @@ def generate_twotower_candidates_if_available(
             logger.warning("Torch is not installed; skip two-tower candidate generation.")
         return pd.DataFrame()
 
-    from src.recall.twotower import (
-        encode_items,
-        encode_users,
-        load_twotower_checkpoint,
-        resolve_device,
-        retrieve_topk_numpy,
-    )
+    use_faiss = bool(tower_cfg.get("use_faiss", False))
+    if use_faiss:
+        from src.recall.twotower import (
+            encode_users,
+            load_twotower_checkpoint,
+            resolve_device,
+        )
+    else:
+        from src.recall.twotower import (
+            encode_items,
+            encode_users,
+            load_twotower_checkpoint,
+            resolve_device,
+            retrieve_topk_numpy,
+        )
 
     recall_dir = _recall_dir(cfg)
     ckpt_path = recall_dir / cfg["recall"]["output"]["twotower_checkpoint_file"]
@@ -128,18 +225,6 @@ def generate_twotower_candidates_if_available(
     max_seq_len = int(saved_tower_cfg.get("max_seq_len", tower_cfg.get("max_seq_len", 50)))
     sequence_col = str(saved_tower_cfg.get("sequence_col", tower_cfg.get("sequence_col", "watch_seq")))
 
-    if item_emb_path.exists():
-        item_payload = np.load(item_emb_path)
-        item_ids = item_payload["item_ids"]
-        item_vectors = item_payload["item_vectors"]
-    else:
-        item_ids, item_vectors = encode_items(
-            model,
-            item_features=item_features,
-            encoders=encoders,
-            device=device,
-        )
-
     user_ids, user_vectors = encode_users(
         model,
         user_ids=np.asarray(user_ids, dtype=np.int64),
@@ -150,17 +235,43 @@ def generate_twotower_candidates_if_available(
         device=device,
     )
     fetch_topk = topk * 3 if tower_cfg.get("exclude_seen", True) and history_df is not None else topk
-    candidates = retrieve_topk_numpy(
-        user_ids=user_ids,
-        user_vectors=user_vectors,
-        item_ids=item_ids,
-        item_vectors=item_vectors,
-        topk=fetch_topk,
-    )
+    if use_faiss:
+        fetch_topk = max(fetch_topk, int(tower_cfg.get("faiss_top_k", fetch_topk)))
+        candidates = _retrieve_topk_faiss(
+            cfg=cfg,
+            user_ids=user_ids,
+            user_vectors=user_vectors,
+            topk=fetch_topk,
+            logger=logger,
+        )
+    else:
+        if item_emb_path.exists():
+            item_payload = np.load(item_emb_path)
+            item_ids = item_payload["item_ids"]
+            item_vectors = item_payload["item_vectors"]
+        else:
+            item_ids, item_vectors = encode_items(
+                model,
+                item_features=item_features,
+                encoders=encoders,
+                device=device,
+            )
+        candidates = retrieve_topk_numpy(
+            user_ids=user_ids,
+            user_vectors=user_vectors,
+            item_ids=item_ids,
+            item_vectors=item_vectors,
+            topk=fetch_topk,
+        )
     if tower_cfg.get("exclude_seen", True):
         candidates = _filter_seen_and_topk(candidates, history_df=history_df, topk=topk)
     if logger:
-        logger.info("Generated two-tower candidates for %s: rows=%d", split, candidates.shape[0])
+        logger.info(
+            "Generated %s candidates for %s: rows=%d",
+            _twotower_source_name(cfg),
+            split,
+            candidates.shape[0],
+        )
     return candidates
 
 
@@ -238,7 +349,8 @@ def generate_candidates_for_split(
         if logger:
             logger.info("Generated ItemCF candidates for %s: rows=%d", split, frames["itemcf"].shape[0])
 
-    frames["twotower"] = generate_twotower_candidates_if_available(
+    twotower_source = _twotower_source_name(split_cfg)
+    frames[twotower_source] = generate_twotower_candidates_if_available(
         cfg=split_cfg,
         split=split,
         user_ids=user_ids,
@@ -278,20 +390,70 @@ def evaluate_recall(
     catalog_size: int,
 ) -> dict[str, Any]:
     positives = _positive_pairs(split_df, label_col)
+    positives_flag = positives.rename(columns={"label": "_positive"})
     total_positive = int(positives.shape[0])
+    positive_counts = positives.groupby("user_id").size().astype("int64")
+
+    def _compute_ndcg_at_k(ranked_frame: pd.DataFrame, k: int) -> float:
+        if ranked_frame.empty or positive_counts.empty:
+            return 0.0
+        topk_df = ranked_frame.groupby("user_id", as_index=False, group_keys=False).head(int(k)).copy()
+        if topk_df.empty:
+            return 0.0
+        topk_df["_row_rank"] = topk_df.groupby("user_id").cumcount() + 1
+        hits = topk_df.merge(positives_flag, on=["user_id", "video_id"], how="left")
+        hits["_positive"] = hits["_positive"].fillna(0).astype("float32")
+        hits["dcg_gain"] = hits["_positive"] / np.log2(hits["_row_rank"].astype(float) + 1.0)
+        dcg = hits.groupby("user_id")["dcg_gain"].sum()
+
+        max_pos = int(min(positive_counts.max(), int(k)))
+        if max_pos <= 0:
+            return 0.0
+        discount_cumsum = np.concatenate(
+            [
+                np.asarray([0.0], dtype=np.float64),
+                np.cumsum(1.0 / np.log2(np.arange(2, max_pos + 2, dtype=np.float64))),
+            ]
+        )
+        ideal = positive_counts.clip(upper=int(k)).map(lambda count: float(discount_cumsum[int(count)]))
+        ndcg = dcg.reindex(positive_counts.index, fill_value=0.0) / ideal.replace(0.0, np.nan)
+        return float(ndcg.fillna(0.0).mean())
+
+    def _evaluate_ranked_frame(frame: pd.DataFrame, sort_cols: list[str]) -> dict[str, Any]:
+        metrics: dict[str, Any] = {
+            "candidate_count": int(frame.shape[0]),
+            "num_users": int(frame["user_id"].nunique()) if not frame.empty else 0,
+            "coverage_all": float(frame["video_id"].nunique() / max(catalog_size, 1)) if not frame.empty else 0.0,
+        }
+        if frame.empty:
+            for k in topks:
+                metrics[f"recall@{k}"] = 0.0
+                metrics[f"coverage@{k}"] = 0.0
+                metrics[f"ndcg@{k}"] = 0.0
+            return metrics
+
+        ranked_frame = frame.sort_values(sort_cols, ascending=[True, False, True])
+        for k in topks:
+            topk_df = ranked_frame.groupby("user_id", as_index=False, group_keys=False).head(int(k))
+            hits = topk_df.merge(positives, on=["user_id", "video_id"], how="inner")
+            metrics[f"recall@{k}"] = float(hits.shape[0] / max(total_positive, 1))
+            metrics[f"coverage@{k}"] = (
+                float(topk_df["video_id"].nunique() / max(catalog_size, 1)) if not topk_df.empty else 0.0
+            )
+            metrics[f"ndcg@{k}"] = _compute_ndcg_at_k(ranked_frame, int(k))
+        return metrics
+
     metrics: dict[str, Any] = {
         "num_candidates": int(candidates.shape[0]),
         "num_users": int(candidates["user_id"].nunique()) if not candidates.empty else 0,
         "num_positive_pairs": total_positive,
         "coverage_all": float(candidates["video_id"].nunique() / max(catalog_size, 1)) if not candidates.empty else 0.0,
     }
-
-    ranked = candidates.sort_values(["user_id", "merged_score", "merged_rank"], ascending=[True, False, True])
-    for k in topks:
-        topk_df = ranked.groupby("user_id", as_index=False, group_keys=False).head(int(k))
-        hits = topk_df.merge(positives, on=["user_id", "video_id"], how="inner")
-        metrics[f"recall@{k}"] = float(hits.shape[0] / max(total_positive, 1))
-        metrics[f"coverage@{k}"] = float(topk_df["video_id"].nunique() / max(catalog_size, 1)) if not topk_df.empty else 0.0
+    overall_metrics = _evaluate_ranked_frame(candidates, sort_cols=["user_id", "merged_score", "merged_rank"])
+    for key, value in overall_metrics.items():
+        if key == "candidate_count":
+            continue
+        metrics[key] = value
 
     source_sets = {
         source: set(zip(df["user_id"].astype(int), df["video_id"].astype(int)))
@@ -310,6 +472,11 @@ def evaluate_recall(
                 "jaccard": float(inter / union) if union else 0.0,
             }
     metrics["source_candidate_counts"] = {source: int(len(values)) for source, values in source_sets.items()}
+    metrics["source_metrics"] = {
+        source: _evaluate_ranked_frame(df, sort_cols=["user_id", "source_score", "source_rank"])
+        for source, df in raw_source_frames.items()
+        if df is not None
+    }
     metrics["source_overlap"] = overlap
     return metrics
 

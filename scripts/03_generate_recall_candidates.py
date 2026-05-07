@@ -48,6 +48,38 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Override merged final topK per user.",
     )
+    parser.add_argument(
+        "--use-faiss",
+        action="store_true",
+        help="Use FAISS for two-tower retrieval instead of numpy matrix multiplication.",
+    )
+    parser.add_argument(
+        "--faiss-only",
+        action="store_true",
+        help="Only run FAISS-backed two-tower recall and disable other recall channels.",
+    )
+    parser.add_argument(
+        "--faiss-index-type",
+        choices=["flat", "hnsw", "ivf"],
+        default=None,
+        help="Override recall.twotower.faiss_index_type.",
+    )
+    parser.add_argument(
+        "--faiss-index-path",
+        default=None,
+        help="Override recall.twotower.faiss_index_path.",
+    )
+    parser.add_argument(
+        "--faiss-id-map-path",
+        default=None,
+        help="Override recall.twotower.faiss_id_map_path.",
+    )
+    parser.add_argument(
+        "--faiss-top-k",
+        type=int,
+        default=None,
+        help="Override recall.twotower.faiss_top_k.",
+    )
     return parser.parse_args()
 
 
@@ -65,6 +97,22 @@ def main() -> None:
         cfg["recall"]["graph_emb"]["enabled"] = False
     if args.final_topk is not None:
         cfg["recall"]["merge"]["final_topk"] = args.final_topk
+    if args.use_faiss:
+        cfg["recall"]["twotower"]["use_faiss"] = True
+    if args.faiss_only:
+        cfg["recall"]["twotower"]["enabled"] = True
+        cfg["recall"]["twotower"]["use_faiss"] = True
+        cfg["recall"]["popular"]["enabled"] = False
+        cfg["recall"]["itemcf"]["enabled"] = False
+        cfg["recall"]["graph_emb"]["enabled"] = False
+    if args.faiss_index_type is not None:
+        cfg["recall"]["twotower"]["faiss_index_type"] = args.faiss_index_type
+    if args.faiss_index_path is not None:
+        cfg["recall"]["twotower"]["faiss_index_path"] = args.faiss_index_path
+    if args.faiss_id_map_path is not None:
+        cfg["recall"]["twotower"]["faiss_id_map_path"] = args.faiss_id_map_path
+    if args.faiss_top_k is not None:
+        cfg["recall"]["twotower"]["faiss_top_k"] = args.faiss_top_k
 
     ensure_project_dirs(cfg)
     seed_everything(int(cfg["project"]["random_seed"]))

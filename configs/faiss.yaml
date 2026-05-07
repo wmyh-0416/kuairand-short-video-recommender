@@ -1,0 +1,44 @@
+base_config: configs/default.yaml
+
+faiss:
+  processed:
+    item_features_file: item_features.parquet
+    user_sequences_file: user_sequences.parquet
+    splits_dir: splits
+
+  input:
+    recall_dir: recall
+    twotower_checkpoint_file: twotower.pt
+    twotower_item_embeddings_file: twotower_item_embeddings.npz
+    twotower_user_embeddings_file: twotower_user_embeddings.npz
+
+  output:
+    faiss_dir: faiss
+    metrics_dir: metrics
+    video_embeddings_file: video_embeddings.npy
+    video_id_map_file: video_id_map.pkl
+    flat_index_file: faiss_flat.index
+    ann_index_file: faiss_hnsw.index
+    build_report_file: faiss_build_report.json
+    recall_report_file: faiss_recall_report.json
+    benchmark_file: faiss_benchmark.json
+
+  similarity: cosine
+
+  ann:
+    index_type: hnsw
+    hnsw:
+      m: 32
+      ef_construction: 200
+      ef_search: 128
+    ivf:
+      nlist: 256
+      nprobe: 32
+      train_sample_size: 50000
+
+  eval:
+    top_k: 500
+    num_queries: 200
+    sample_results: 3
+    random_seed: 2026
+    synthetic_if_missing: true

@@ -1,0 +1,48 @@
+base_config: configs/default.yaml
+
+component_configs:
+  recall: configs/recall.yaml
+  prerank: configs/prerank.yaml
+  rank: configs/rank.yaml
+  rerank: configs/rerank.yaml
+
+experiment:
+  name: offline_ab_test
+  split: test
+  random_seed: 2026
+  traffic_split:
+    control: 0.5
+    treatment: 0.5
+  group_by: user_id
+  top_k: [10, 50]
+
+policies:
+  control:
+    name: baseline
+    type: popular
+  treatment:
+    name: full_pipeline
+    type: full_pipeline
+
+metrics:
+  primary: long_view_rate@10
+  secondary:
+    - hit_rate@10
+    - recall@10
+    - ndcg@10
+    - like_rate@10
+    - coverage@10
+    - category_diversity@10
+
+statistics:
+  bootstrap:
+    enabled: true
+    n_samples: 500
+    confidence_level: 0.95
+
+output:
+  experiments_dir: experiments
+  report_file: ab_test_report.json
+  summary_file: ab_test_summary.md
+
+faiss_index_type: hnsw

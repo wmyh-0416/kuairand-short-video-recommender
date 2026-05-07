@@ -12,6 +12,9 @@ __pycache__/
 .venv/
 venv/
 .env
+node_modules/
+frontend/dist/
+frontend/.vite/
 
 # OS files
 .DS_Store

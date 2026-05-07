@@ -1,609 +1,442 @@
-# KuaiRand Four-Layer Short Video Recommendation System
+# End-to-End Short Video Recommendation System on KuaiRand-Pure
 
-A four-layer recommendation system project for short-video Feed scenarios, implemented on the **KuaiRand-Pure** dataset. The goal is not a single-model baseline, but to reproduce a more industry-like full pipeline with practical personal engineering complexity: **preprocess -> multi-recall -> pre-rank -> rank -> rerank**.
+A production-style multi-stage short-video recommender with FAISS ANN retrieval, LightGBM pre-ranking, DIN multi-task ranking, real-time feedback serving, offline A/B simulation, and cold-start analysis.
 
-## Project Background
+## Overview
 
-Compared with traditional MovieLens-style recommendation, short-video recommendation has two key differences:
+This repository turns **KuaiRand-Pure** into a full recommendation system project rather than a single-model demo. It includes:
 
-- The candidate space is much larger, so multi-channel recall and layered filtering are required instead of directly ranking over all items.
-- User feedback is richer. In addition to clicks, there are multiple targets such as **watch time, finish, and like**, so multi-task learning is more suitable in the ranking stage.
+- an offline multi-stage recommendation pipeline
+- multi-channel recall with `popular`, `itemcf`, `twotower`, `graph_emb`, and `twotower_faiss`
+- FAISS ANN retrieval with `IndexFlatIP`, `HNSW`, and `IVF`
+- LightGBM pre-ranking and DIN-style multi-task ranking
+- rule-based reranking for diversity, author frequency control, and freshness
+- a FastAPI serving layer with optional Redis-backed user state and recommendation cache
+- monitoring, local serving benchmark, offline A/B simulation, and cold-start analysis
 
-So this project is not a toy two-stage "recall + ranking" demo. It implements a four-layer architecture closer to real Feed recommendation systems:
+Additional docs:
 
-- Preprocess layer: label construction, time-based split, user sequences, shared feature tables
-- Multi-recall layer: popular / itemcf / twotower / graph_emb
-- Pre-rank layer: LightGBM filters low-quality candidates
-- Rank layer: DIN-style multi-task ranking
-- Rerank layer: rule-based rerank, adding author frequency control, content diversity, and freshness strategies
+- [Deployment](docs/deployment.md)
+- [Frontend Demo](docs/frontend_demo.md)
+- [Resume Bullets](docs/resume_bullets.md)
+- [System Design Notes](docs/system_design.md)
+- [Interview Q&A](docs/interview_qa.md)
+- [Project Report](docs/project_report.md)
 
-This project emphasizes **industrial layered recommendation thinking**, rather than "forcing a single deep model onto a public dataset".
+## Architecture
+
+```mermaid
+flowchart LR
+    A[KuaiRand-Pure Logs] --> B[Preprocess]
+    B --> C[Multi-channel Recall]
+    C --> C1[popular / itemcf / twotower / graph_emb]
+    C --> C2[FAISS ANN twotower_faiss]
+    C1 --> D[Recall Candidate Merge]
+    C2 --> D
+    D --> E[LightGBM Prerank]
+    E --> F[DIN Multi-task Ranker]
+    F --> G[Rule-based Rerank]
+    G --> H[FastAPI Serving]
+    H <--> I[Redis / UserState]
+    H --> J[Feedback Loop]
+    J --> I
+    H --> K[Monitoring / Benchmark]
+    G --> L[Offline Evaluation]
+    G --> M[Offline A/B Simulation]
+    G --> N[Cold-start Analysis]
+```
+
+## Core Capabilities
+
+| Capability | Status | Main script / config | Key artifacts |
+|---|---|---|---|
+| Offline pipeline | Done | `scripts/01~08`, `configs/preprocess.yaml`, `configs/recall.yaml`, `configs/prerank.yaml`, `configs/rank.yaml`, `configs/rerank.yaml` | `processed/splits/*.parquet`, `artifacts/metrics/pipeline_report.json` |
+| Multi-channel recall | Done | `scripts/02_train_recall.py`, `scripts/03_generate_recall_candidates.py`, `configs/recall.yaml` | `artifacts/recall/*`, `artifacts/metrics/recall_metrics.json` |
+| FAISS ANN retrieval | Done | `scripts/09_build_faiss_index.py`, `scripts/10_test_faiss_recall.py`, `configs/faiss.yaml` | `artifacts/faiss/*`, `artifacts/metrics/faiss_benchmark.json` |
+| Pre-rank | Done | `scripts/04_train_prerank.py`, `scripts/05_generate_prerank_topk.py`, `configs/prerank.yaml` | `artifacts/prerank/model.pkl`, `artifacts/prerank/test_topk.parquet` |
+| Rank | Done | `scripts/06_train_rank.py`, `configs/rank.yaml` | `artifacts/rank/best_model.pt`, `artifacts/rank/test_ranked.parquet` |
+| Rerank | Done | `scripts/07_run_rerank.py`, `configs/rerank.yaml` | `artifacts/rerank/test_final.parquet`, `artifacts/metrics/pipeline_report.json` |
+| Online serving | Done | `scripts/11_run_serving.py`, `configs/serving.yaml` | `src/serving/*`, `/health`, `/recommend`, `/feedback`, `/metrics` |
+| Interactive frontend demo | Done | `frontend/*`, `docs/frontend_demo.md` | React + Vite demo for `/recommend`, `/feedback`, `/health`, `/metrics` |
+| Real-time feedback loop | Done | `scripts/12_test_realtime_feedback.py`, `configs/serving.yaml` | `artifacts/serving/feedback_log.jsonl`, `UserState`, cache invalidation |
+| Redis cache | Optional fallback implemented | `configs/serving.yaml`, `docker-compose.yml` | Redis optional, memory fallback built in |
+| Docker deployment | Configured | `Dockerfile`, `docker-compose.yml`, `docs/deployment.md` | `api + redis` compose stack |
+| Monitoring and benchmark | Done | `scripts/15_benchmark_serving.py`, `configs/serving.yaml` | `artifacts/serving/request_log.jsonl`, `artifacts/serving/benchmark_report.json` |
+| Offline A/B simulation | Done | `scripts/13_run_ab_test.py`, `configs/ab_test.yaml` | `artifacts/experiments/ab_test_report.json`, `ab_test_summary.md` |
+| Cold-start analysis | Done | `scripts/14_cold_start_analysis.py`, `configs/cold_start.yaml` | `artifacts/analysis/cold_start_report.json`, `cold_start_summary.md` |
 
 ## Dataset
 
-This project uses [KuaiRand-Pure](https://zenodo.org/records/10439422).
+This project uses **KuaiRand-Pure**, a short-video recommendation dataset with:
 
-Why this dataset:
+- exposure logs instead of only explicit ratings
+- multi-feedback signals such as click, long view, finish, and like
+- item metadata such as `author_id`, `tag`, upload date, and aggregated statistics
+- a natural fit for feed-style multi-stage recommendation
 
-- It comes from a short-video scenario, naturally suitable for Feed recommendation modeling.
-- Logs include fields like `play_time_ms`, `duration_ms`, `is_like`, and `long_view`, which support common multi-target label design for short-video tasks.
-- Item-side fields include `author_id`, `tag`, upload time, and statistical features, making it easy to model author-level, category-level, and freshness signals.
+### Time-aware split
 
-This project uses a **time-based split** to avoid leakage caused by random splitting:
+The pipeline uses a strict time-based split instead of random splitting:
 
 - `train`: `date <= 20220424`
 - `val`: `20220425 ~ 20220430`
 - `test`: `date >= 20220501`
 
-Label definitions:
+This is combined with a **point-in-time feature principle**:
 
-- `like = is_like`
-- `finish = play_time_ms / duration_ms >= 0.95`
-- `long_watch = long_view`
-- `is_positive = long_watch OR finish OR like`
+- user history for ranking is built from past behavior only
+- train / val / test are not mixed when constructing evaluation targets
+- later interactions are not used to build earlier-stage user features
 
-Here, `is_positive` represents an "effective positive feedback" definition under implicit-feedback short-video settings. It is not equivalent to an explicit "like", but is suitable as supervision for recall and pre-rank.
+### Current local processed data
 
-## Overall Architecture
+The numbers below come from the current local `processed/` artifacts:
 
-```text
-raw KuaiRand-Pure csv
-  -> preprocess
-  -> multi-recall
-  -> prerank
-  -> DIN-style multi-task rank
-  -> rule-based rerank
-  -> final feed list
-```
+| Split | Rows | Users | Unique items |
+|---|---:|---:|---:|
+| train | 1,208,280 | 26,469 | 7,542 |
+| val | 94,784 | 21,184 | 5,564 |
+| test | 133,545 | 22,709 | 5,722 |
+
+Other local processed artifacts:
+
+- item feature rows: `7,583`
+- user sequence rows: `26,469`
+
+## Pipeline Usage
+
+Note: many scripts support `--processed-dir` and `--artifacts-dir` overrides. If your local paths differ from `configs/default.yaml`, pass overrides explicitly.
 
 ### 1. Preprocess
 
-The preprocess stage uniformly handles:
-
-- Raw log reading and field standardization
-- Label construction for `watch_ratio / finish / long_watch / like / is_positive`
-- Time-based split into train / val / test
-- Persisted user basic features, item basic features, and item statistical features
-- User behavior sequence construction
-
-Core outputs:
-
-- `processed/interactions.parquet`
-- `processed/user_features.parquet`
-- `processed/item_features.parquet`
-- `processed/user_sequences.parquet`
-- `processed/splits/{train,val,test}.parquet`
-
-### 2. Multi-Recall
-
-The recall layer finally implements 4 channels:
-
-- `popular`
-  - Based on train-split statistics of plays, long watch, finish, and like
-- `itemcf`
-  - Builds item-item co-occurrence similarity from positive-feedback sequences in train split
-- `twotower`
-  - User tower uses `user_id + recent watch sequence`
-  - Item tower uses `video_id + author_id + tag`
-  - Trained with PyTorch, GPU supported
-- `graph_emb`
-  - Builds an item-item graph from train-split positive feedback
-  - Learns item embeddings using random walk + skip-gram
-  - Integrated into merge as an additional recall channel
-
-Recall results are merged through a unified merge module:
-
-- Per-source control via source quotas
-- Computes `merged_score`
-- Keeps each channel's `source_score / source_rank`
-- Final outputs: `train/val/test_candidates.parquet`
-
-### 3. Pre-Rank
-
-The pre-rank layer is trained on recall candidates, not on full user-item pairs.
-
-The first main model is **LightGBM**:
-
-- Training samples come from `artifacts/recall/*_candidates.parquet`
-- Positive samples: candidates with `label = 1`
-- Negative samples: candidates with `label = 0`, with user-level negative sampling
-- Features are lightweight engineered features:
-  - `user_id / video_id / author_id / tag`
-  - user/item basic and statistical features
-  - recall source, merged score, source count
-  - per-source score / rank
-  - freshness_days
-
-The pre-rank objective is to compress each user's candidates from 500 to 100 while retaining positives as much as possible.
-
-### 4. Rank
-
-The main rank model is not a plain MLP, but a **DIN-style multi-task ranking model**.
-
-Design:
-
-- Build leakage-safe user historical sequences using the `train split`
-- Apply target-aware attention between candidate items and user historical items
-- Concatenate the resulting user-interest vector with static features into a shared tower
-- Output 3 tasks:
-  - `long_watch`
-  - `finish`
-  - `like`
-
-Final `rank_score` is a weighted fusion of three task scores:
-
-- `0.45 * p(long_watch)`
-- `0.25 * p(finish)`
-- `0.30 * p(like)`
-
-Why DIN:
-
-- Compared with plain MLP, it better models matching between "current candidate video" and "what the user recently watched"
-- Compared with Transformer, engineering complexity is more controllable, which is more suitable for a first personal project version
-
-### 5. Rerank
-
-The rerank layer uses rule-based greedy reranking without training an additional slate model.
-
-Current strategies include:
-
-- Author frequency control
-  - Consecutive-author penalty
-  - Max author exposure constraint in topN
-- Tag diversity
-  - Consecutive same-tag penalty
-  - Repeated-tag penalty
-  - New-tag bonus
-- Freshness adjustment
-  - Exponential decay bonus based on `freshness_days`
-
-Design principles:
-
-- Do not overturn DIN relevance ranking
-- Add lightweight business constraints only in the final layer
-- Balance ranking quality, diversity, and feed display experience
-
-## Result Summary
-
-The following results are based on current official local run artifacts.
-
-### Recall Layer
-
-Final setup uses `popular + itemcf + twotower + graph_emb`, where `graph_emb` is integrated as a supplementary recall channel after weight and quota tuning.
-
-| split | Recall@50 | Recall@100 | Recall@200 | Coverage |
-|---|---:|---:|---:|---:|
-| val | 0.1832 | 0.2476 | 0.3151 | 0.9995 |
-| test | 0.1731 | 0.2343 | 0.2973 | 0.9996 |
-
-### Pre-Rank Layer
-
-LightGBM pre-rank results:
-
-- `val_auc = 0.8149`
-- `train_auc = 0.8648`
-- Candidate compression: `500 -> 100`, retaining `20%` of candidates overall
-- `val recall_retained@100 = 0.6600`
-- `test recall_retained@100 = 0.6315`
-
-If we compare absolute top100 recall with the same definition as the recall layer:
-
-- `val`: improved from `0.2476` to `0.3523`
-- `test`: improved from `0.2343` to `0.3317`
-
-This shows pre-rank effectively brings more likely-hit items forward while shrinking the candidate set.
-
-### Rank Layer
-
-Key metrics of DIN-style multi-task ranking:
-
-| split | rank_auc | long_watch_auc | finish_auc | like_auc | NDCG@20 |
-|---|---:|---:|---:|---:|---:|
-| val | 0.5753 | 0.5746 | 0.6596 | 0.6201 | 0.0295 |
-| test | 0.5845 | 0.5838 | 0.6663 | 0.6219 | 0.0359 |
-
-### Rerank Layer
-
-Under minimal quality loss, rule-based rerank improves diversity and feed ecology:
-
-- `val`
-  - `NDCG@20: +0.0000117`
-  - `Recall@20: +0.000479`
-  - `avg_unique_tags_per_user: +0.309`
-  - `adjacent_same_tag_rate: -0.0172`
-- `test`
-  - `NDCG@20: +0.000182`
-  - `Recall@20: +0.001631`
-  - `avg_unique_tags_per_user: +0.302`
-  - `adjacent_same_tag_rate: -0.0171`
-
-These results match the role of rerank: not to chase large metric jumps, but to trade small cost for better content distribution and display experience.
-
-## How To Run
-
-Recommended: use the preconfigured A100 environment:
-
 ```bash
-cd /scratch/ym3447/Rec
-source /scratch/ym3447/Rec/.venv-a100/bin/activate
+python scripts/01_preprocess.py --config configs/preprocess.yaml
 ```
 
-Run by stages:
+### 2. Train recall branches
 
 ```bash
-python scripts/01_preprocess.py
-python scripts/02_train_recall.py
-python scripts/03_generate_recall_candidates.py
-python scripts/04_train_prerank.py
-python scripts/05_generate_prerank_topk.py
-python scripts/06_train_rank.py
-python scripts/07_run_rerank.py
-python scripts/08_evaluate_pipeline.py
+python scripts/02_train_recall.py --config configs/recall.yaml
 ```
 
-Notes:
+### 3. Generate merged recall candidates
 
-- PyTorch training defaults to `.venv-a100` with `device: auto -> cuda`
-- LightGBM pre-rank is CPU training
-- Rerank is rule-based CPU logic
+```bash
+python scripts/03_generate_recall_candidates.py --config configs/recall.yaml
+```
 
-## Project Structure
+### 4. Build FAISS indices
+
+```bash
+python scripts/09_build_faiss_index.py --config configs/faiss.yaml
+```
+
+### 5. Benchmark FAISS recall
+
+```bash
+python scripts/10_test_faiss_recall.py --config configs/faiss.yaml
+```
+
+### 6. Train and infer pre-rank
+
+```bash
+python scripts/04_train_prerank.py --config configs/prerank.yaml
+python scripts/05_generate_prerank_topk.py --config configs/prerank.yaml
+```
+
+### 7. Train rank model
+
+```bash
+python scripts/06_train_rank.py --config configs/rank.yaml
+```
+
+### 8. Run rerank and summarize pipeline
+
+```bash
+python scripts/07_run_rerank.py --config configs/rerank.yaml
+python scripts/08_evaluate_pipeline.py --config configs/rerank.yaml
+```
+
+### 9. Start online serving
+
+```bash
+python scripts/11_run_serving.py \
+  --config configs/serving.yaml \
+  --processed-dir ./processed \
+  --artifacts-dir ./artifacts \
+  --host 127.0.0.1 \
+  --port 8000
+```
+
+### 10. Test realtime feedback loop
+
+```bash
+python scripts/12_test_realtime_feedback.py \
+  --base-url http://127.0.0.1:8000 \
+  --user-id 0 \
+  --top-k 5
+```
+
+### 11. Interactive frontend demo
+
+Start the backend:
+
+```bash
+python scripts/11_run_serving.py \
+  --config configs/serving.yaml \
+  --processed-dir ./processed \
+  --artifacts-dir ./artifacts \
+  --host 127.0.0.1 \
+  --port 8000
+```
+
+Start the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open:
 
 ```text
-Rec/
-  configs/
-  processed/
-  artifacts/
-  scripts/
-  src/
-    data/
-    recall/
-    prerank/
-    rank/
-    rerank/
-    utils/
-  docs/
+http://localhost:5173
 ```
+
+The frontend talks to the backend through `VITE_API_BASE_URL`, which defaults to `http://127.0.0.1:8000`. More detail is in [docs/frontend_demo.md](docs/frontend_demo.md).
+
+### 12. Local serving benchmark
+
+```bash
+python scripts/15_benchmark_serving.py \
+  --base-url http://127.0.0.1:8000 \
+  --num-requests 50 \
+  --concurrency 5 \
+  --top-k 5
+```
+
+### 13. Offline A/B simulation
+
+```bash
+python scripts/13_run_ab_test.py \
+  --config configs/ab_test.yaml \
+  --processed-dir ./processed \
+  --artifacts-dir ./artifacts
+```
+
+### 14. Cold-start analysis
+
+```bash
+python scripts/14_cold_start_analysis.py \
+  --config configs/cold_start.yaml \
+  --processed-dir ./processed \
+  --artifacts-dir ./artifacts
+```
+
+### 15. Docker deployment
+
+```bash
+docker compose up --build
+```
+
+Detailed deployment notes are in [docs/deployment.md](docs/deployment.md).
+
+## Metrics Summary
+
+All metrics below come from existing local artifacts in `artifacts/`.
+
+### Offline pipeline
+
+| Stage | Metric | Val | Test |
+|---|---|---:|---:|
+| Recall | Recall@50 | 0.1832 | 0.1731 |
+| Recall | Recall@100 | 0.2476 | 0.2343 |
+| Recall | Recall@200 | 0.3151 | 0.2973 |
+| Recall | Coverage | 0.9995 | 0.9996 |
+| Pre-rank | Recall retained@100 | 0.6600 | 0.6315 |
+| Rank | rank_auc | 0.5753 | 0.5845 |
+| Rank | long_watch_auc | 0.5746 | 0.5838 |
+| Rank | finish_auc | 0.6596 | 0.6663 |
+| Rank | like_auc | 0.6201 | 0.6219 |
+| Rank | NDCG@20 | 0.0295 | 0.0359 |
+| Rerank | NDCG@20 before | 0.03635 | 0.04605 |
+| Rerank | NDCG@20 after | 0.03636 | 0.04623 |
+| Rerank | delta NDCG@20 | +0.0000117 | +0.0001823 |
+| Rerank | avg unique tags / user delta | +0.3091 | +0.3023 |
+
+Interpretation:
+
+- recall and pre-rank provide most of the candidate filtering
+- DIN ranker improves fine-grained ordering but absolute NDCG is still moderate
+- rerank is doing what it should: small relevance change, measurable diversity gain
+
+### FAISS benchmark
+
+Current benchmark compares `IndexFlatIP` with `HNSW` on `top_k=500`.
+
+| Index | Mean latency (ms) | P95 latency (ms) | Index size (bytes) |
+|---|---:|---:|---:|
+| FlatIP | 0.8636 | 0.8543 | 1,941,293 |
+| HNSW | 0.7151 | 0.8091 | 4,002,390 |
+
+Additional FAISS metrics:
+
+- mean overlap@500 vs FlatIP: `0.8352`
+- p95 overlap@500: `0.9060`
+- mean latency speedup vs FlatIP: `1.21x`
+
+Interpretation:
+
+- HNSW is faster on average in the current local benchmark
+- overlap is good enough for a practical ANN branch, but not exact
+
+### Serving benchmark
+
+These numbers come from a **local** benchmark, not a production load test.
+
+| Metric | Value |
+|---|---:|
+| Requests | 50 |
+| Concurrency | 5 |
+| Success count | 50 |
+| QPS | 1.7394 |
+| Mean latency | 2822.39 ms |
+| P50 latency | 2871.64 ms |
+| P95 latency | 3245.20 ms |
+| P99 latency | 3282.12 ms |
+| Cache hit rate | 0.02 |
+| Redis connected during benchmark | false |
+
+Average per-stage latency from the same server snapshot:
+
+- recall: `56.87 ms`
+- prerank: `1180.22 ms`
+- rank: `1480.71 ms`
+- rerank: `100.65 ms`
+
+Interpretation:
+
+- the current online stack is functionally complete
+- the main latency bottlenecks are pre-rank and rank feature/inference stages
+- the benchmark was run locally with Redis unavailable, so memory fallback was used
+
+### Offline A/B simulation
+
+This is an **offline log-replay simulation**, not a real online A/B test.
+
+Control:
+
+- `popular`
+
+Treatment:
+
+- `full_pipeline`
+
+Current test-split summary:
+
+| Metric | Control | Treatment | Relative lift |
+|---|---:|---:|---:|
+| long_view_rate@10 | 0.007492 | 0.006921 | -7.62% |
+| hit_rate@10 | 0.070197 | 0.065845 | -6.20% |
+| recall@50 | 0.086977 | 0.132197 | +51.99% |
+| ndcg@50 | 0.038862 | 0.044551 | +14.64% |
+| coverage@10 | 0.003033 | 0.214031 | +6956.52% |
+
+Bootstrap result for the primary metric:
+
+- primary metric: `long_view_rate@10`
+- observed relative lift: `-7.62%`
+- bootstrap 95% CI: `[-0.1606, 0.0151]`
+
+Interpretation:
+
+- the full pipeline did **not** clearly beat `popular` on the primary metric in this offline replay
+- it did improve deeper recall, ranking depth, and coverage materially
+- this is a useful trade-off discussion point, not a result to exaggerate
+
+### Cold-start analysis
+
+This is a **heuristic cold-start simulation**, not a learned cold-start model.
+
+User segment distribution in the current test split:
+
+| Segment | Users | Impressions |
+|---|---:|---:|
+| new_user | 1,279 | 6,219 |
+| low_active_user | 2,992 | 11,631 |
+| medium_active_user | 5,969 | 28,193 |
+| high_active_user | 12,469 | 87,502 |
+
+Cold-start enhancement strategies:
+
+- `global_popular`
+- `category_popular`
+- `freshness_boost`
+
+Current user-segment lift summary:
+
+| Segment | hit_rate@10 lift | recall@50 lift | long_view_rate@10 lift | coverage@10 lift |
+|---|---:|---:|---:|---:|
+| new_user | +48.84% | +15.49% | +64.13% | -13.24% |
+| low_active_user | +17.39% | -3.78% | +23.24% | -26.92% |
+| medium_active_user | +5.60% | +6.36% | +7.25% | -2.40% |
+| high_active_user | +0.64% | +1.54% | +0.30% | -0.50% |
+
+Interpretation:
+
+- cold-user quality improves clearly, especially for `new_user`
+- the trade-off is lower coverage because more traffic shifts toward popular / category-popular content
+- item cold-start is still weak; most recommendations remain concentrated on `popular_item`
 
 ## Project Highlights
 
-- Not a single-model demo, but a complete **four-layer recommendation pipeline**
-- Clearly reflects industrial layered recommendation thinking: **multi-recall -> pre-rank -> rank -> rerank**
-- Recall layer goes beyond popular/itemcf and also implements `twotower + graph_emb`
-- Pre-rank uses LightGBM to handle massive candidates, closer to real engineering practice
-- Rank uses a **DIN-style multi-task model**, not a simple MLP
-- Rerank adds Feed strategies including author frequency control, tag diversity, and freshness adjustment
-- Intermediate candidates, models, and metrics are persisted for reproducibility, extensibility, and interview presentation
+- Integrated FAISS ANN retrieval into a multi-stage recommendation pipeline instead of keeping Two-Tower as a standalone offline embedding model.
+- Built a full online serving path with `/health`, `/recommend`, `/feedback`, `/metrics`, and `/metrics/prometheus`, plus degraded mode when some artifacts are missing.
+- Implemented a realtime feedback loop with `UserState`, recent-view filtering, recommendation cache invalidation, and optional Redis with memory fallback.
+- Added lightweight in-process monitoring, structured request logs, and a local benchmark flow that surfaces stage-level latency bottlenecks.
+- Added offline log-replay A/B simulation with user-level bucketing and bootstrap CI, and documented clearly that it is not a real online experiment.
+- Added cold-start cohort analysis that shows where heuristic enhancements help and where they trade coverage for short-term quality.
+- Preserved time-aware data splitting and leakage prevention through the ranking pipeline and offline evaluation path.
 
-## What This Project Is Not
+## Known Limitations
 
-This project is not a full reproduction of a large-scale online recommender system, and does not include:
+- Offline A/B simulation is **not** a real online A/B test and does not estimate causal lift.
+- Serving benchmark is local only; it is **not** a production load test.
+- The cold-start strategy is heuristic and offline; it is not a learned cold-start model.
+- Docker Compose files were prepared, but Docker was not available on the current machine during development, so full container validation was not completed here.
+- Realtime feedback is a serving-state simulation; it does not feed an actual model retraining loop yet.
+- Item cold-start is still weak even after heuristic enhancement.
+- Some lower-stage artifacts, such as `artifacts/recall/test_candidates.parquet`, may exist only as Git LFS pointers instead of materialized parquet files.
+- Online latency is currently high for a true production system, especially in pre-rank and rank stages.
+- The current serving feature store is still local parquet-based, not an online feature platform.
 
-- Real-time feature serving
-- ANN service deployment
-- Distributed training and online inference
-- A/B testing and online metric closed loop
+## Roadmap
 
-But it still provides a relatively complete demonstration of:
+- Validate the Compose stack in a real Docker + Redis environment.
+- Add Prometheus + Grafana dashboards on top of the current metrics endpoints.
+- Add content-based or metadata-based cold-item recall for real item cold-start coverage.
+- Introduce a proper online feature store instead of local parquet-backed feature loading.
+- Add IPS / DR style debiased offline evaluation.
+- Build a true retraining loop from feedback logs to refreshed model artifacts.
+- Compare DIN with stronger rankers such as Transformer ranker, DCN, or DeepFM.
 
-- Why industrial recommender systems use layered architecture
-- What problem each layer solves
-- Why short-video recommendation needs multi-objective learning and reranking constraints
-
-That is also why it is suitable for recommendation algorithm resumes and interview walkthroughs.
-
-## Future Extensions
-
-- Replace DIN with stronger sequence models, e.g. Transformer ranker
-- Add more robust ANN retrieval and vector indexing in recall
-- Add exposure-bias handling such as debias / IPS / DR
-- Extend rerank from rule-based to learning-to-rerank
-- Introduce context features like time segment, tab, and scenario context
-- Run offline ablation studies to compare contributions of graph_emb, twotower, multi-task loss, and rerank constraints
-
-
-
-## 中文版（原文）
-# KuaiRand 四层短视频推荐系统
-
-一个基于 **KuaiRand-Pure** 数据集实现的、面向短视频 Feed 场景的四层推荐系统项目。项目目标不是做单模型 baseline，而是用个人可落地的工程复杂度，复现更贴近工业推荐系统的 **预处理 -> 多路召回 -> 粗排 -> 精排 -> 重排** 全链路。
-
-## 项目背景
-
-短视频推荐和传统 MovieLens 风格推荐有两个核心差异：
-
-- 候选空间更大，必须依赖多路召回和层层过滤，而不是直接在全量 item 上做排序。
-- 用户反馈更丰富，除了点击，还包括 **观看时长、完播、点赞** 等多种目标，排序阶段更适合做多任务学习。
-
-因此，这个项目没有做“召回 + 排序”两段式 toy demo，而是实现了更接近真实 Feed 推荐系统的四层架构：
-
-- 预处理层：标签构造、时间切分、用户序列、公共特征表
-- 多路召回层：popular / itemcf / twotower / graph_emb
-- 粗排层：LightGBM 过滤低质量候选
-- 精排层：DIN-style 多任务精排
-- 重排层：规则式 rerank，补充作者频控、内容多样性与新鲜度策略
-
-项目强调的是 **工业推荐分层思维**，而不是“把一个深度模型硬套到公开数据集上”。
-
-## 数据集
-
-项目使用 [KuaiRand-Pure](https://zenodo.org/records/10439422)。
-
-选择这个数据集的原因：
-
-- 它来自短视频场景，天然适合 Feed 推荐建模。
-- 日志里包含 `play_time_ms`、`duration_ms`、`is_like`、`long_view` 等字段，能够支持短视频里常见的多目标标签设计。
-- item 侧包含 `author_id`、`tag`、上传时间、统计特征，便于做作者维度、内容类别维度和新鲜度建模。
-
-本项目采用 **时间切分**，避免随机切分带来的信息泄漏：
-
-- `train`: `date <= 20220424`
-- `val`: `20220425 ~ 20220430`
-- `test`: `date >= 20220501`
-
-标签定义：
-
-- `like = is_like`
-- `finish = play_time_ms / duration_ms >= 0.95`
-- `long_watch = long_view`
-- `is_positive = long_watch OR finish OR like`
-
-这里的 `is_positive` 是短视频隐式反馈场景下的“有效正反馈”定义，不等价于“明确喜欢”，但适合作为召回和粗排的监督信号。
-
-## 整体架构
+## Repository Layout
 
 ```text
-raw KuaiRand-Pure csv
-  -> preprocess
-  -> multi-recall
-  -> prerank
-  -> DIN-style multi-task rank
-  -> rule-based rerank
-  -> final feed list
+configs/
+scripts/
+src/
+  analysis/
+  data/
+  experiments/
+  prerank/
+  rank/
+  recall/
+  rerank/
+  serving/
+  utils/
+docs/
+processed/
+artifacts/
 ```
-
-### 1. 预处理
-
-预处理阶段统一完成：
-
-- 原始日志读取与字段标准化
-- `watch_ratio / finish / long_watch / like / is_positive` 标签构造
-- train / val / test 时间切分
-- 用户基础特征、item 基础特征、item 统计特征落盘
-- 用户行为序列构造
-
-核心产物：
-
-- `processed/interactions.parquet`
-- `processed/user_features.parquet`
-- `processed/item_features.parquet`
-- `processed/user_sequences.parquet`
-- `processed/splits/{train,val,test}.parquet`
-
-### 2. 多路召回
-
-召回层最终实现了 4 条路径：
-
-- `popular`
-  - 基于 train split 的播放、长观看、完播、点赞统计
-- `itemcf`
-  - 基于 train split 正反馈序列构建 item-item 共现相似度
-- `twotower`
-  - 用户塔使用 `user_id + recent watch sequence`
-  - item 塔使用 `video_id + author_id + tag`
-  - PyTorch 训练，支持 GPU
-- `graph_emb`
-  - 基于 train split 正反馈构建 item-item 图
-  - 用随机游走 + skip-gram 学习 item embedding
-  - 作为补充召回路接入 merge
-
-召回结果通过统一 merge 合并：
-
-- 按 source quota 做 per-source 控制
-- 计算 `merged_score`
-- 保留各路 `source_score / source_rank`
-- 最终输出 `train/val/test_candidates.parquet`
-
-### 3. 粗排
-
-粗排层基于召回候选训练，不做全量 user-item 训练。
-
-第一版主模型选用 **LightGBM**：
-
-- 训练样本来自 `artifacts/recall/*_candidates.parquet`
-- 正样本：候选里 `label = 1`
-- 负样本：候选里 `label = 0`，并按用户负采样
-- 特征为轻量工程特征：
-  - `user_id / video_id / author_id / tag`
-  - user/item 基础与统计特征
-  - recall source、merged score、source count
-  - 各路 source score / rank
-  - freshness_days
-
-粗排目标是把每用户候选从 500 压到 100，同时尽量保留正样本。
-
-### 4. 精排
-
-精排层主模型不是纯 MLP，而是 **DIN-style 多任务精排模型**。
-
-设计思路：
-
-- 用 `train split` 构建 leakage-safe 用户历史序列
-- 对候选 item 与用户历史 item 做 target-aware attention
-- 得到用户兴趣向量后，与静态特征拼接进入 shared tower
-- 输出 3 个任务：
-  - `long_watch`
-  - `finish`
-  - `like`
-
-最终 `rank_score` 由三个任务分数加权融合：
-
-- `0.45 * p(long_watch)`
-- `0.25 * p(finish)`
-- `0.30 * p(like)`
-
-为什么选 DIN：
-
-- 相比纯 MLP，更适合建模“当前候选视频”和“用户最近看过什么”之间的匹配关系
-- 相比 Transformer，工程复杂度更可控，更适合个人项目第一版落地
-
-### 5. 重排
-
-重排层使用规则式 greedy rerank，不额外训练学习型 slate 模型。
-
-当前实现的策略包括：
-
-- 作者频控
-  - 连续作者惩罚
-  - topN 内作者最大曝光数约束
-- tag 多样性
-  - 连续同 tag 惩罚
-  - 重复 tag 惩罚
-  - 新 tag bonus
-- 新鲜度调节
-  - 基于 `freshness_days` 做指数衰减 bonus
-
-设计原则是：
-
-- 不推翻 DIN 的相关性排序
-- 只在最后一层做轻量业务约束补充
-- 兼顾排序质量、多样性和 feed 展示体验
-
-## 结果总结
-
-以下结果基于当前正式跑通的本地实验产物。
-
-### 召回层
-
-最终采用 `popular + itemcf + twotower + graph_emb`，其中 `graph_emb` 经过权重和 quota 调整后作为补充召回路。
-
-| split | Recall@50 | Recall@100 | Recall@200 | Coverage |
-|---|---:|---:|---:|---:|
-| val | 0.1832 | 0.2476 | 0.3151 | 0.9995 |
-| test | 0.1731 | 0.2343 | 0.2973 | 0.9996 |
-
-### 粗排层
-
-LightGBM 粗排结果：
-
-- `val_auc = 0.8149`
-- `train_auc = 0.8648`
-- 候选压缩率：`500 -> 100`，整体保留 `20%` 候选
-- `val recall_retained@100 = 0.6600`
-- `test recall_retained@100 = 0.6315`
-
-如果按与召回层同口径比较粗排 top100 的绝对 Recall：
-
-- `val`: 从 `0.2476` 提升到 `0.3523`
-- `test`: 从 `0.2343` 提升到 `0.3317`
-
-这说明粗排在缩小候选集的同时，确实把更可能命中的 item 提前了。
-
-### 精排层
-
-DIN-style 多任务精排的关键指标：
-
-| split | rank_auc | long_watch_auc | finish_auc | like_auc | NDCG@20 |
-|---|---:|---:|---:|---:|---:|
-| val | 0.5753 | 0.5746 | 0.6596 | 0.6201 | 0.0295 |
-| test | 0.5845 | 0.5838 | 0.6663 | 0.6219 | 0.0359 |
-
-### 重排层
-
-规则式 rerank 在尽量不损失质量的前提下，改善了多样性与 feed 生态：
-
-- `val`
-  - `NDCG@20: +0.0000117`
-  - `Recall@20: +0.000479`
-  - `avg_unique_tags_per_user: +0.309`
-  - `adjacent_same_tag_rate: -0.0172`
-- `test`
-  - `NDCG@20: +0.000182`
-  - `Recall@20: +0.001631`
-  - `avg_unique_tags_per_user: +0.302`
-  - `adjacent_same_tag_rate: -0.0171`
-
-这个结果符合重排层的定位：不追求大幅提升模型指标，而是用较小代价换取更好的内容分布与展示体验。
-
-## 如何运行
-
-推荐使用已经配置好的 A100 环境：
-
-```bash
-cd /scratch/ym3447/Rec
-source /scratch/ym3447/Rec/.venv-a100/bin/activate
-```
-
-按阶段运行：
-
-```bash
-python scripts/01_preprocess.py
-python scripts/02_train_recall.py
-python scripts/03_generate_recall_candidates.py
-python scripts/04_train_prerank.py
-python scripts/05_generate_prerank_topk.py
-python scripts/06_train_rank.py
-python scripts/07_run_rerank.py
-python scripts/08_evaluate_pipeline.py
-```
-
-说明：
-
-- PyTorch 相关训练默认在 `.venv-a100` 下走 `device: auto -> cuda`
-- LightGBM 粗排为 CPU 训练
-- 重排为规则式 CPU 逻辑
-
-## 项目结构
-
-```text
-Rec/
-  configs/
-  processed/
-  artifacts/
-  scripts/
-  src/
-    data/
-    recall/
-    prerank/
-    rank/
-    rerank/
-    utils/
-  docs/
-```
-
-## 项目亮点
-
-- 不是单模型 demo，而是完整的 **四层推荐系统 pipeline**
-- 明确体现 **多路召回 -> 粗排 -> 精排 -> 重排** 的工业推荐分层思想
-- 召回层不止做 popular / itemcf，还实现了 `twotower + graph_emb`
-- 粗排层使用 LightGBM 处理海量候选，贴近真实工程实践
-- 精排层使用 **DIN-style 多任务模型**，而不是简单 MLP
-- 重排层补上了作者频控、tag 多样性、新鲜度调节等 Feed 策略逻辑
-- 中间候选、模型、指标均落盘，可复现、可扩展、可用于面试讲解
-
-## 这个项目不是什么
-
-这个项目不是线上大规模推荐系统复现，也没有实现：
-
-- 实时特征服务
-- ANN 服务化部署
-- 分布式训练与在线推断
-- A/B test 与在线指标闭环
-
-但它已经比较完整地体现了：
-
-- 工业推荐系统为什么要分层
-- 每层各自解决什么问题
-- 为什么短视频推荐要做多目标学习和重排约束
-
-这也是它适合用于推荐算法岗简历和面试讲解的原因。
-
-## 后续可扩展方向
-
-- 用更强的序列模型替换 DIN，例如 Transformer ranker
-- 在召回层加入更稳健的 ANN 检索与向量索引
-- 增加 debias / IPS / DR 等曝光偏差处理
-- 把重排从规则式扩展到 learning-to-rerank
-- 引入 context 特征，如时间段、tab、场景上下文
-- 做离线 ablation，系统比较 graph_emb、twotower、多任务 loss、rerank 约束的贡献
-

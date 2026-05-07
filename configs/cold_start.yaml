@@ -1,0 +1,29 @@
+base_config: configs/default.yaml
+
+component_configs:
+  recall: configs/recall.yaml
+  prerank: configs/prerank.yaml
+  rank: configs/rank.yaml
+  rerank: configs/rerank.yaml
+
+cold_start:
+  split: test
+  top_k: [10, 50]
+  candidate_pool_size: 100
+  positive_label: is_positive
+  user_segments:
+    low_active_max: 3
+    medium_active_max: 10
+  item_segments:
+    low_exposure_max: 10
+    medium_exposure_max: 100
+  strategies:
+    enable_global_popular: true
+    enable_category_popular: true
+    enable_freshness_boost: true
+    freshness_boost_weight: 0.05
+    category_tag_limit: 3
+    category_popular_topn_per_tag: 100
+  output:
+    report_file: analysis/cold_start_report.json
+    summary_file: analysis/cold_start_summary.md

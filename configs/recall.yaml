@@ -63,6 +63,12 @@ recall:
     candidate_topk: 300
     exclude_seen: true
     device: auto
+    use_faiss: false
+    faiss_index_path: ""
+    faiss_id_map_path: "faiss/video_id_map.pkl"
+    faiss_top_k: 500
+    faiss_normalize: true
+    faiss_index_type: hnsw
 
   graph_emb:
     enabled: true
@@ -91,11 +97,13 @@ recall:
       popular: 0.15
       itemcf: 0.25
       twotower: 0.35
+      twotower_faiss: 0.35
       graph_emb: 0.02
     per_source_topk:
       popular: 300
       itemcf: 300
       twotower: 300
+      twotower_faiss: 300
       graph_emb: 10
     final_topk: 500
 

@@ -1,0 +1,77 @@
+base_config: configs/default.yaml
+
+serving:
+  component_configs:
+    recall: configs/recall.yaml
+    prerank: configs/prerank.yaml
+    rank: configs/rank.yaml
+    rerank: configs/rerank.yaml
+
+  api:
+    host: 0.0.0.0
+    port: 8000
+    default_top_k: 10
+    max_top_k: 50
+
+  cors:
+    enabled: true
+    allow_origins:
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+    allow_credentials: true
+    allow_methods: ["*"]
+    allow_headers: ["*"]
+
+  pipeline:
+    recall_top_k: 500
+    prerank_top_k: 100
+    reference_split: test
+    rerank_reference_split: test
+
+  faiss:
+    enabled: true
+    index_type: hnsw
+    normalize: true
+    index_files:
+      flat: faiss/faiss_flat.index
+      hnsw: faiss/faiss_hnsw.index
+      ivf: faiss/faiss_ivf.index
+    id_map_file: faiss/video_id_map.pkl
+    user_embeddings_file: recall/twotower_user_embeddings.npz
+    twotower_checkpoint_file: twotower.pt
+
+  components:
+    prerank: true
+    rank: true
+    rerank: true
+
+  fallback:
+    allow_popular: true
+    popular_top_k: 200
+    allow_synthetic_mean_user: true
+
+  cache:
+    use_redis: false
+    redis_url: redis://localhost:6379/0
+    namespace: kuairand_recsys
+    recommendation_ttl_seconds: 30
+    user_state_ttl_seconds: 604800
+    popular_ttl_seconds: 3600
+
+  feedback:
+    serving_dir: serving
+    feedback_log_file: feedback_log.jsonl
+    request_log_file: request_log.jsonl
+    max_history_len: 50
+    long_watch_ratio: 0.7
+
+  realtime_features:
+    enabled: true
+    filter_recent_viewed: true
+    recent_viewed_filter_size: 50
+
+  monitoring:
+    enabled: true
+    latency_window_size: 5000
+    request_log_file: request_log.jsonl
+    enable_prometheus: true

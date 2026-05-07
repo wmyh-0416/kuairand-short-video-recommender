@@ -46,7 +46,7 @@ rank:
     exclude_target_from_history: true
 
   features:
-    source_names: [popular, itemcf, twotower, graph_emb]
+    source_names: [popular, itemcf, twotower, twotower_faiss, graph_emb]
     source_score_default: 0.0
     source_rank_default: 1000000
     split_reference_dates:
